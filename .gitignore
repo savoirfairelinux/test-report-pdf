@@ -1,0 +1,6 @@
+#This file will be modified by the script
+include/test-reports.adoc
+#This directory will contain modified csv files
+include/tests/
+#Pdf generated
+main.pdf
