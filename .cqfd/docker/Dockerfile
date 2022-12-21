@@ -9,6 +9,10 @@ ENV LC_ALL en_US.UTF-8
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	asciidoc \
 	bash \
+	locales \
 	ruby \
 	ruby-asciidoctor-pdf \
 	&& rm -rf /var/lib/apt/lists/*
+
+RUN sed -i "s/# en_US\.UTF-8 UTF-8/en_US\.UTF-8 UTF-8/" /etc/locale.gen
+RUN locale-gen
