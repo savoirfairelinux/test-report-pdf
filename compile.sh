@@ -57,7 +57,7 @@ integrate_all()
     rm $dst_dir/*.csv
     cp $src_dir/*.csv $dst_dir
 
-    for f in $(find $dst_dir -name *.csv); do
+    for f in $(find "$src_dir" -name "*.csv"); do
         echo "including $f into $adoc_file"
         beautify_csv $f
         add_csv_to_adoc $f $adoc_file
