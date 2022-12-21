@@ -54,6 +54,10 @@ generate_row()
     local xml="$4"
     local green_color="#90EE90"
     local red_color="#F08080"
+
+    # Sanitize testcase (escape |)
+    testcase=$(echo "$testcase" | sed 's/|/\\|/g')
+
     if [ -n "$USE_ID" ] ; then
         test_id=$(echo "$testcase" | awk -F ' - ' '{print $1}')
         testcase_name=$(echo "$testcase" | awk -F ' - ' '{$1=""; print }')
