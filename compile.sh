@@ -23,7 +23,7 @@ USAGE:
 
 OPTIONS:
     -h: display this message
-    -i <dir>: source Junit directory to use
+    -i <dir>: source Junit directory to use ( default is include/ )
     -s: Split test name and ID. Test name must be formated as ID - test name.
 EOF
 }
@@ -128,6 +128,7 @@ add_xml_to_adoc()
 
 }
 
+XML_SRC_DIR="include"
 while getopts ":si:h" opt; do
     case $opt in
     i)
