@@ -153,3 +153,5 @@ fi
 
 integrate_all
 asciidoctor-pdf main.adoc
+
+rm $TEST_ADOC_FILE
