@@ -143,6 +143,10 @@ while getopts ":si:h" opt; do
         usage
         exit 0
         ;;
+    *)
+        echo "Unrecognized option"
+        usage
+        exit 1
     esac
 done
 shift $((OPTIND-1))
