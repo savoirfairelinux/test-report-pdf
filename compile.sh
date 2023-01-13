@@ -95,9 +95,10 @@ add_xml_to_adoc()
             -v @failures "$xml")
         local cols='"7,1"'
         if [ -z "$suite" -o "$suite" == "default" ] ; then
-            suite=$(basename $xml)
+            echo -n "=== Tests $(basename $xml)" >> "$TEST_ADOC_FILE"
+        else
+            echo -n "=== Tests $suite" >> "$TEST_ADOC_FILE"
         fi
-        echo -n "=== Tests $suite" >> "$TEST_ADOC_FILE"
         if [ -n "$classname" -a "$classname" != "cukinia" ] ; then
             echo -n " for $classname" >> "$TEST_ADOC_FILE"
         fi
