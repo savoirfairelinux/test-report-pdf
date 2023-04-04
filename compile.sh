@@ -42,15 +42,16 @@ integrate_all()
 
     for f in $(find "$XML_SRC_DIR" -name "*.xml"); do
         echo "including $f into $TEST_ADOC_FILE"
-        add_xml_to_adoc "$f"
+        add_xml_to_adoc "$f" "$TEST_ADOC_FILE"
     done
 }
 
 generate_row()
 {
-    local suite="$1"
-    local testcase="$2"
-    local xml="$3"
+    local i="$1"
+    local j="$2"
+    local testcase="$3"
+    local xml="$4"
     local green_color="#90EE90"
     local red_color="#F08080"
 
@@ -74,7 +75,7 @@ generate_row()
         # Reset color
         echo "{set:cellbgcolor!}" >> "$TEST_ADOC_FILE"
     fi
-    if $(xmlstarlet -q sel -t -m "//testsuite[@name='$suite']/testcase[@name='$testcase']/failure" -v @message "$xml")
+    if $(xmlstarlet -q sel -t  -v "////testsuites/testsuite[$i]/testcase[$j]/failure" "$xml")
     then
         echo "|FAIL{set:cellbgcolor:$red_color}" >> "$TEST_ADOC_FILE"
     else
@@ -85,20 +86,18 @@ generate_row()
 add_xml_to_adoc()
 {
     local xml="$1"
-    local test_suites=$(xmlstarlet sel -t -v  '//testsuite/@name' "$xml")
-    for suite in $test_suites ; do
-        local classname=$(xmlstarlet sel -t -m "//testsuite[@name='$suite']/testcase[1]" \
-            -v @classname "$xml")
-        local nb_tests=$(xmlstarlet sel -t -m "//testsuite[@name='$suite']" \
-            -v @tests "$xml")
-        local failures=$(xmlstarlet sel -t -m "//testsuite[@name='$suite']" \
-            -v @failures "$xml")
+    local nb_suites="$(( $(xmlstarlet sel -t -v  '//testsuite/@name' "$xml"\
+        |wc -l) +1 ))"
+    for i in $(seq 1 ${nb_suites}) ; do
+        local testname=$(xmlstarlet sel -t -v "//testsuite[$i]/@name" "$xml")
+        local classname=$(xmlstarlet sel -t -v "//testsuite[$i]/testcase[1]/@classname" "$xml")
+        local nb_tests=$(xmlstarlet sel -t -v "//testsuite[$i]/@tests" "$xml")
+        local failures=$(xmlstarlet sel -t -v "//testsuite[$i]/@failures" "$xml")
         local cols='"7,1"'
-        if [ -z "$suite" -o "$suite" == "default" ] ; then
-            echo -n "=== Tests $(basename $xml)" >> "$TEST_ADOC_FILE"
-        else
-            echo -n "=== Tests $suite" >> "$TEST_ADOC_FILE"
+        if [ -z "$testname" -o "$testname" == "default" ] ; then
+            testname=$(basename $xml)
         fi
+        echo -n "=== Tests $testname" >> "$TEST_ADOC_FILE"
         if [ -n "$classname" -a "$classname" != "cukinia" ] ; then
             echo -n " for $classname" >> "$TEST_ADOC_FILE"
         fi
@@ -114,13 +113,11 @@ add_xml_to_adoc()
         fi
         echo "|Tests |Results" >> "$TEST_ADOC_FILE"
 
-        local testcases=$(xmlstarlet sel -t -m "//testsuite[@name='$suite']/testcase" \
-            -v @name -nl "$xml")
-        IFS=$'\n'
-        for testcase in $testcases; do
-            generate_row "$suite" "$testcase" "$xml"
-        done
-
+        local j=1
+        while read testcase ; do
+            generate_row "$i" "$j" "$testcase" "$xml"
+            let j++
+        done < <(xmlstarlet sel -t -v "//testsuite[$i]/testcase/@name" "$xml")
         echo "|===" >> "$TEST_ADOC_FILE"
         echo "{set:cellbgcolor!}" >> "$TEST_ADOC_FILE"
         echo "" >> "$TEST_ADOC_FILE"
