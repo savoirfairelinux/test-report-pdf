@@ -22,11 +22,22 @@ usage()
 {
     cat <<EOF
 NAME:
-    asciidoc-report an asciidoc pdf builder.
+    test-report-pdf an asciidoc pdf test report builder.
     Copyright (C) 2022-2023 Savoir-faire Linux Inc.
 
-USAGE:
+SYNOPSIS:
     ./compile.sh [options]
+
+DESCRIPTION:
+    This script will automatically look for all .xml files contained in the
+    source directory and integrate them in the test report. By default, one
+    table will be created for each file containing all test one after another.
+
+    Different tables can be generated for the same file using cukinia tests
+    suites in cukinia (`logging suite "string"`).
+
+    A machine name can be specified in the table title using cukinia class
+    (`logging class "string"`).
 
 OPTIONS:
     -h: display this message
