@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-TEST_ADOC_FILE=$(readlink -f "include/test-reports.adoc")
+TEST_ADOC_FILE=$(readlink -f "test-reports-content.adoc")
 
 # Standard help message
 usage()
@@ -144,10 +144,9 @@ add_xml_to_adoc()
         echo "* number of failures: $failures" >> "$TEST_ADOC_FILE"
         echo "" >> "$TEST_ADOC_FILE"
     done
-
 }
 
-XML_SRC_DIR="include"
+XML_SRC_DIR="example"
 while getopts ":si:h" opt; do
     case $opt in
     i)
