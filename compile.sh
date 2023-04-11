@@ -41,7 +41,8 @@ DESCRIPTION:
 
 OPTIONS:
     -h: display this message
-    -i <dir>: source Junit directory to use ( default is include/ )
+    -i <dir>: source directory to use for xml files and additionnal adoc files
+              ( default is example/ )
     -s: Split test name and ID. Test name must be formated as ID - test name.
 EOF
 }
@@ -54,14 +55,20 @@ die()
 
 integrate_all()
 {
-    [ -d "$XML_SRC_DIR" ] || die "$XML_SRC_DIR does not exist"
+    [ -d "$SRC_DIR" ] || die "$SRC_DIR does not exist"
     [ -f "$TEST_ADOC_FILE" ] && rm "$TEST_ADOC_FILE"
-    echo "== Test reports" > "$TEST_ADOC_FILE"
 
-    for f in $(find "$XML_SRC_DIR" -name "*.xml"); do
+    echo "include::$SRC_DIR/prerequisites.adoc[opts=optional]" > "$TEST_ADOC_FILE"
+    echo "" >> "$TEST_ADOC_FILE" # new line needed for a new page in asciidoc
+
+    echo "== Test reports" >> "$TEST_ADOC_FILE"
+
+    for f in $(find "$SRC_DIR" -name "*.xml"); do
         echo "including $f into $TEST_ADOC_FILE"
         add_xml_to_adoc "$f" "$TEST_ADOC_FILE"
     done
+
+    echo "include::$SRC_DIR/notes.adoc[opts=optional]" >> "$TEST_ADOC_FILE"
 }
 
 generate_row()
@@ -146,11 +153,11 @@ add_xml_to_adoc()
     done
 }
 
-XML_SRC_DIR="example"
+SRC_DIR="example"
 while getopts ":si:h" opt; do
     case $opt in
     i)
-        XML_SRC_DIR="$OPTARG"
+        SRC_DIR="$OPTARG"
         ;;
     s)
         USE_ID="true"
@@ -167,8 +174,8 @@ while getopts ":si:h" opt; do
 done
 shift $((OPTIND-1))
 
-if [ -z "$XML_SRC_DIR" ] || [ ! -d "$XML_SRC_DIR" ] ; then
-    die "$XML_SRC_DIR is not found or is not a directory"
+if [ -z "$SRC_DIR" ] || [ ! -d "$SRC_DIR" ] ; then
+    die "$SRC_DIR is not found or is not a directory"
 fi
 
 integrate_all
