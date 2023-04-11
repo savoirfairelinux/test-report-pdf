@@ -24,11 +24,7 @@ Test report
 :iconsdir: ./doc/icons/
 :sectnumlevels: 1
 
-include::example/prerequisites.adoc[opts=optional]
-
 include::test-reports-content.adoc[]
-
-include::example/notes.adoc[opts=optional]
 
 == About this documentation
 
