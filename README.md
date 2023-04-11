@@ -18,6 +18,5 @@ Several tables can be generated for the same file using cukinia suite feature : 
 
 To specify the table title for a machine, use the class feature of cukinia : `logging class "name"`. This will append "for name" in the title.
 
-A Prerequisites part can be added on top of the document. It is written in asciidoc in the file `include/prerequisites.adoc`.
-A Notes part can also be added at the end using the file `include/notes.adoc`.
-Both files are optional and can be removed if they are not needed.
+The source directory can be selected with the `-i` option. This directory shall contain all xml file to include to the test report.
+It can also include a `prerequisites.adoc` file that will be added on top of the document and a `notes.adoc` file that will appear at the end. Both files are optional.
