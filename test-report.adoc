@@ -36,7 +36,7 @@ In order to generate an HTML version of this documentation, use the following
 command (the asciidoc package will need to be installed in your Linux
 distribution):
 
-  $ asciidoc main.adoc
+  $ asciidoc test-report.adoc
 
 This will result in a README.html file being generated in the current directory.
 
@@ -44,4 +44,4 @@ If you prefer a PDF version of the documentation instead, use the following
 command (the dblatex package will need to be installed on your Linux
 distribution):
 
-  $ asciidoctor-pdf main.adoc
+  $ asciidoctor-pdf test-report.adoc

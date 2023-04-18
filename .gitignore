@@ -1,6 +1,6 @@
 # This file will be modified by the script
 include/test-reports.adoc
 # Pdf generated
-main.pdf
+test-report.pdf
 # All included xml test files
 include/*.xml
