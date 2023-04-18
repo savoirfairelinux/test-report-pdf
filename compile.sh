@@ -179,6 +179,6 @@ if [ -z "$SRC_DIR" ] || [ ! -d "$SRC_DIR" ] ; then
 fi
 
 integrate_all
-asciidoctor-pdf main.adoc
+asciidoctor-pdf test-report.adoc
 
 rm $TEST_ADOC_FILE
