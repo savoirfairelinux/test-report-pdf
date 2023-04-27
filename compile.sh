@@ -68,6 +68,11 @@ generate_adoc()
         add_test_file_to_adoc "$f"
     done
 
+    for f in $(find "$SRC_DIR" -name "*.csv"); do
+        echo "including compliance matrix $f"
+        add_compliance_matrix "$f"
+    done
+
     echo "include::$SRC_DIR/notes.adoc[opts=optional]" >> "$TMP_ADOC_FILE"
 }
 
@@ -151,6 +156,24 @@ add_test_file_to_adoc()
         echo "* number of failures: $failures" >> "$TMP_ADOC_FILE"
         echo "" >> "$TMP_ADOC_FILE"
     done
+}
+
+add_compliance_matrix()
+{
+  echo "=== Compliance Matrix" >> "$TMP_ADOC_FILE"
+
+  echo "[options=\"header\",cols=\"6,2,1\",frame=all, grid=all]" >> "$TMP_ADOC_FILE"
+  echo "|===" >> "$TMP_ADOC_FILE"
+  echo "|Requirement |Test id |Status" >> "$TMP_ADOC_FILE"
+
+  while IFS="," read -r requirement id
+  do
+    echo "|$requirement" >> "$TMP_ADOC_FILE"
+    echo "|$id" >> "$TMP_ADOC_FILE"
+    echo "|??" >> "$TMP_ADOC_FILE"
+  done < $1
+
+  echo "|===" >> "$TMP_ADOC_FILE"
 }
 
 SRC_DIR="example"
