@@ -166,10 +166,20 @@ add_compliance_matrix()
   echo "|===" >> "$TMP_ADOC_FILE"
   echo "|Requirement |Test id |Status" >> "$TMP_ADOC_FILE"
 
+  current_requirement=""
   while IFS="," read -r requirement id
   do
-    echo "|$requirement" >> "$TMP_ADOC_FILE"
+    # Display the requirement, eventually fitting multiple lines
+    if [ "$current_requirement" != "$requirement" ]; then
+      nb_tests=$(grep $requirement $1 | wc -l)
+      echo ".$nb_tests+| $requirement" >> "$TMP_ADOC_FILE";
+      current_requirement="$requirement"
+    fi
+
+    # Display a test id in the second column
     echo "|$id" >> "$TMP_ADOC_FILE"
+
+    # Display its result
     echo "|??" >> "$TMP_ADOC_FILE"
   done < $1
 
