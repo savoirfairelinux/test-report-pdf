@@ -16,6 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 TMP_ADOC_FILE=$(readlink -f "test-reports-content.adoc")
+GREEN_COLOR="#90EE90"
+RED_COLOR="#F08080"
+ORANGE_COLOR="#ee6644"
 
 # Standard help message
 usage()
@@ -63,14 +66,15 @@ generate_adoc()
 
     echo "== Test reports" >> "$TMP_ADOC_FILE"
 
-    for f in $(find "$SRC_DIR" -name "*.xml"); do
+    local TEST_FILES=$(find "$SRC_DIR" -name "*.xml")
+    for f in $TEST_FILES; do
         echo "including test file $f"
         add_test_file_to_adoc "$f"
     done
 
     for f in $(find "$SRC_DIR" -name "*.csv"); do
         echo "including compliance matrix $f"
-        add_compliance_matrix "$f"
+        add_compliance_matrix "$f" "$TEST_FILES"
     done
 
     echo "include::$SRC_DIR/notes.adoc[opts=optional]" >> "$TMP_ADOC_FILE"
@@ -82,8 +86,6 @@ generate_test_row()
     local j="$2"
     local testcase="$3"
     local xml="$4"
-    local green_color="#90EE90"
-    local red_color="#F08080"
 
     # Sanitize testcase (escape |)
     testcase=$(echo "$testcase" | sed 's/|/\\|/g')
@@ -107,9 +109,9 @@ generate_test_row()
     fi
     if $(xmlstarlet -q sel -t  -v "////testsuites/testsuite[$i]/testcase[$j]/failure" "$xml")
     then
-        echo "|FAIL{set:cellbgcolor:$red_color}" >> "$TMP_ADOC_FILE"
+        echo "|FAIL{set:cellbgcolor:$RED_COLOR}" >> "$TMP_ADOC_FILE"
     else
-        echo "|PASS{set:cellbgcolor:$green_color}" >> "$TMP_ADOC_FILE"
+        echo "|PASS{set:cellbgcolor:$GREEN_COLOR}" >> "$TMP_ADOC_FILE"
     fi
 }
 
@@ -160,6 +162,10 @@ add_test_file_to_adoc()
 
 add_compliance_matrix()
 {
+  local MATRIX_FILE="$1"
+  shift
+  local TEST_FILES="$*"
+
   echo "=== Compliance Matrix" >> "$TMP_ADOC_FILE"
 
   echo "[options=\"header\",cols=\"6,2,1\",frame=all, grid=all]" >> "$TMP_ADOC_FILE"
@@ -171,17 +177,26 @@ add_compliance_matrix()
   do
     # Display the requirement, eventually fitting multiple lines
     if [ "$current_requirement" != "$requirement" ]; then
-      nb_tests=$(grep $requirement $1 | wc -l)
+      nb_tests=$(grep -c "$requirement," "$MATRIX_FILE")
       echo ".$nb_tests+| $requirement" >> "$TMP_ADOC_FILE";
+      echo "{set:cellbgcolor!}" >> "$TMP_ADOC_FILE" # Reset color
       current_requirement="$requirement"
     fi
+    # Color reset is needed two times cause we use lines spaning in requirements
 
     # Display a test id in the second column
     echo "|$id" >> "$TMP_ADOC_FILE"
+    echo "{set:cellbgcolor!}" >> "$TMP_ADOC_FILE" # Reset color
 
-    # Display its result
-    echo "|??" >> "$TMP_ADOC_FILE"
-  done < $1
+    # Display the status of the test in the third column
+    if grep "<!\[CDATA\[$id" $TEST_FILES | grep -q '<failure'; then
+      echo "|FAIL{set:cellbgcolor:$RED_COLOR}" >> "$TMP_ADOC_FILE"
+    elif grep -q "name=\"$id" $TEST_FILES; then
+      echo "|PASS{set:cellbgcolor:$GREEN_COLOR}" >> "$TMP_ADOC_FILE"
+    else
+      echo "|ABSENT{set:cellbgcolor:$ORANGE_COLOR}" >> "$TMP_ADOC_FILE"
+    fi
+  done < $MATRIX_FILE
 
   echo "|===" >> "$TMP_ADOC_FILE"
 }
