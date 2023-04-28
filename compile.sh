@@ -73,8 +73,12 @@ generate_adoc()
     done
 
     for f in $(find "$SRC_DIR" -name "*.csv"); do
-        echo "including compliance matrix $f"
-        add_compliance_matrix "$f" "$TEST_FILES"
+        if [ -z "$USE_ID" ] ; then
+            echo "can't include $f, test id feature is not enabled"
+        else
+            echo "including compliance matrix $f"
+            add_compliance_matrix "$f" $TEST_FILES
+        fi
     done
 
     echo "include::$SRC_DIR/notes.adoc[opts=optional]" >> "$TMP_ADOC_FILE"
