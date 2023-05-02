@@ -66,23 +66,23 @@ generate_adoc()
 
     echo "== Test reports" >> "$TMP_ADOC_FILE"
 
-    local TEST_FILES=$(find "$SRC_DIR" -name "*.xml")
-    for f in $TEST_FILES; do
+    mapfile -t TEST_FILES < <(find "$SRC_DIR" -name "*.xml")
+    for f in "${TEST_FILES[@]}"; do
         echo "including test file $f"
         add_test_file_to_adoc "$f"
     done
 
-    local COMP_MAT_FILES=$(find "$SRC_DIR" -name "*.csv")
-    if [ -n "$COMP_MAT_FILES" ] ; then
+    mapfile -t COMP_MAT_FILES < <(find "$SRC_DIR" -name "*.csv")
+    if [ -n "${COMP_MAT_FILES[*]}" ] ; then
       echo "== Compliance Matrices" >> "$TMP_ADOC_FILE"
     fi
 
-    for f in $COMP_MAT_FILES; do
+    for f in "${COMP_MAT_FILES[@]}"; do
         if [ -z "$USE_ID" ] ; then
             echo "can't include $f, test id feature is not enabled"
         else
             echo "including compliance matrix $f"
-            add_compliance_matrix "$f" $TEST_FILES
+            add_compliance_matrix "$f"
         fi
     done
 
@@ -172,8 +172,6 @@ add_test_file_to_adoc()
 add_compliance_matrix()
 {
   local MATRIX_FILE="$1"
-  shift
-  local TEST_FILES="$*"
 
   echo "=== $(basename $MATRIX_FILE)" >> "$TMP_ADOC_FILE"
 
@@ -198,9 +196,9 @@ add_compliance_matrix()
     echo "{set:cellbgcolor!}" >> "$TMP_ADOC_FILE" # Reset color
 
     # Display the status of the test in the third column
-    if grep "<!\[CDATA\[$id" $TEST_FILES | grep -q '<failure'; then
+    if grep "<!\[CDATA\[$id" "${TEST_FILES[@]}" | grep -q '<failure'; then
       echo "|FAIL{set:cellbgcolor:$RED_COLOR}" >> "$TMP_ADOC_FILE"
-    elif grep -q "name=\"$id" $TEST_FILES; then
+    elif grep -q "name=\"$id" "${TEST_FILES[@]}"; then
       echo "|PASS{set:cellbgcolor:$GREEN_COLOR}" >> "$TMP_ADOC_FILE"
     else
       echo "|ABSENT{set:cellbgcolor:$ORANGE_COLOR}" >> "$TMP_ADOC_FILE"
