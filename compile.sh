@@ -116,7 +116,7 @@ generate_test_row()
         # Reset color
         echo "{set:cellbgcolor!}" >> "$TMP_ADOC_FILE"
     fi
-    if $(xmlstarlet -q sel -t  -v "////testsuites/testsuite[$i]/testcase[$j]/failure" "$xml")
+    if xmlstarlet -q sel -t  -v "////testsuites/testsuite[$i]/testcase[$j]/failure" "$xml"
     then
         echo "|FAIL{set:cellbgcolor:$RED_COLOR}" >> "$TMP_ADOC_FILE"
     else
