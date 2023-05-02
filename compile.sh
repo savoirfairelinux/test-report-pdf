@@ -180,7 +180,7 @@ add_compliance_matrix()
   echo "|Requirement |Test id |Status" >> "$TMP_ADOC_FILE"
 
   current_requirement=""
-  while IFS="," read -r requirement id
+  sort "$MATRIX_FILE" | while IFS="," read -r requirement id
   do
     # Display the requirement, eventually fitting multiple lines
     if [ "$current_requirement" != "$requirement" ]; then
@@ -203,7 +203,7 @@ add_compliance_matrix()
     else
       echo "|ABSENT{set:cellbgcolor:$ORANGE_COLOR}" >> "$TMP_ADOC_FILE"
     fi
-  done < "$MATRIX_FILE"
+  done
 
   echo "|===" >> "$TMP_ADOC_FILE"
 }
