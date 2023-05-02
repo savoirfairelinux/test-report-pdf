@@ -72,7 +72,12 @@ generate_adoc()
         add_test_file_to_adoc "$f"
     done
 
-    for f in $(find "$SRC_DIR" -name "*.csv"); do
+    local COMP_MAT_FILES=$(find "$SRC_DIR" -name "*.csv")
+    if [ -n "$COMP_MAT_FILES" ] ; then
+      echo "== Compliance Matrices" >> "$TMP_ADOC_FILE"
+    fi
+
+    for f in $COMP_MAT_FILES; do
         if [ -z "$USE_ID" ] ; then
             echo "can't include $f, test id feature is not enabled"
         else
@@ -170,7 +175,7 @@ add_compliance_matrix()
   shift
   local TEST_FILES="$*"
 
-  echo "=== Compliance Matrix" >> "$TMP_ADOC_FILE"
+  echo "=== $(basename $MATRIX_FILE)" >> "$TMP_ADOC_FILE"
 
   echo "[options=\"header\",cols=\"6,2,1\",frame=all, grid=all]" >> "$TMP_ADOC_FILE"
   echo "|===" >> "$TMP_ADOC_FILE"
