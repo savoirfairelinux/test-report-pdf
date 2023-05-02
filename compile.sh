@@ -136,7 +136,7 @@ add_test_file_to_adoc()
         local failures=$(xmlstarlet sel -t -v "//testsuite[$i]/@failures" "$xml")
         local cols='"7,1"'
         if [ -z "$testname" -o "$testname" == "default" ] ; then
-            testname=$(basename $xml)
+            testname=$(basename "$xml")
         fi
         echo -n "=== Tests $testname" >> "$TMP_ADOC_FILE"
         if [ -n "$classname" -a "$classname" != "cukinia" ] ; then
@@ -173,7 +173,7 @@ add_compliance_matrix()
 {
   local MATRIX_FILE="$1"
 
-  echo "=== $(basename $MATRIX_FILE)" >> "$TMP_ADOC_FILE"
+  echo "=== $(basename "$MATRIX_FILE")" >> "$TMP_ADOC_FILE"
 
   echo "[options=\"header\",cols=\"6,2,1\",frame=all, grid=all]" >> "$TMP_ADOC_FILE"
   echo "|===" >> "$TMP_ADOC_FILE"
@@ -203,7 +203,7 @@ add_compliance_matrix()
     else
       echo "|ABSENT{set:cellbgcolor:$ORANGE_COLOR}" >> "$TMP_ADOC_FILE"
     fi
-  done < $MATRIX_FILE
+  done < "$MATRIX_FILE"
 
   echo "|===" >> "$TMP_ADOC_FILE"
 }
@@ -236,4 +236,4 @@ fi
 generate_adoc
 asciidoctor-pdf test-report.adoc
 
-rm $TMP_ADOC_FILE
+rm "$TMP_ADOC_FILE"
