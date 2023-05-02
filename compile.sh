@@ -135,11 +135,11 @@ add_test_file_to_adoc()
         local nb_tests=$(xmlstarlet sel -t -v "//testsuite[$i]/@tests" "$xml")
         local failures=$(xmlstarlet sel -t -v "//testsuite[$i]/@failures" "$xml")
         local cols='"7,1"'
-        if [ -z "$testname" -o "$testname" == "default" ] ; then
+        if [ -z "$testname" ] || [ "$testname" == "default" ] ; then
             testname=$(basename "$xml")
         fi
         echo -n "=== Tests $testname" >> "$TMP_ADOC_FILE"
-        if [ -n "$classname" -a "$classname" != "cukinia" ] ; then
+        if [ -n "$classname" ] && [ "$classname" != "cukinia" ] ; then
             echo -n " for $classname" >> "$TMP_ADOC_FILE"
         fi
         echo >> "$TMP_ADOC_FILE"
