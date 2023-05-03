@@ -21,6 +21,8 @@ To specify the table title for a machine, use the class feature of cukinia : `lo
 The source directory can be selected with the `-i` option. This directory shall contain all xml file to include to the test report.
 It can also include a `prerequisites.adoc` file that will be added on top of the document and a `notes.adoc` file that will appear at the end. Both files are optional.
 
+![tests screenshot](./doc/tests_screenshot.png?raw=true)
+
 ## Compliance matrix
 
 This feature only works with the id feature provided by the `-s` option.
@@ -42,3 +44,5 @@ documentation requirement,345
 This csv file will be sorted alphabetically before being integrated in the document.
 
 Please be aware that, for now, all csv files in the source directory are interpreted as compliance matrix.
+
+![compliance matrix screenshot](./doc/compliance_matrix_screenshot.png)
