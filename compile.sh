@@ -47,6 +47,7 @@ OPTIONS:
     -i <dir>: source directory to use for xml files and additionnal adoc files
               ( default is example/ )
     -s: Split test name and ID. Test name must be formated as ID - test name.
+    -c <file>: add the compliance matrix specified in the file.
 EOF
 }
 
@@ -72,19 +73,15 @@ generate_adoc()
         add_test_file_to_adoc "$f"
     done
 
-    mapfile -t COMP_MAT_FILES < <(find "$SRC_DIR" -name "*.csv")
-    if [ -n "${COMP_MAT_FILES[*]}" ] ; then
-      echo "== Compliance Matrices" >> "$TMP_ADOC_FILE"
-    fi
-
-    for f in "${COMP_MAT_FILES[@]}"; do
+    if [ -n "$MATRIX" ] ; then
         if [ -z "$USE_ID" ] ; then
-            echo "can't include $f, test id feature is not enabled"
+            echo "can't include $MATRIX, test id feature is not enabled"
         else
-            echo "including compliance matrix $f"
-            add_compliance_matrix "$f"
+            echo "== Compliance Matrix" >> "$TMP_ADOC_FILE"
+            echo "including compliance matrix $MATRIX"
+            add_compliance_matrix "$MATRIX"
         fi
-    done
+    fi
 
     echo "include::$SRC_DIR/notes.adoc[opts=optional]" >> "$TMP_ADOC_FILE"
 }
@@ -209,13 +206,16 @@ add_compliance_matrix()
 }
 
 SRC_DIR="example"
-while getopts ":si:h" opt; do
+while getopts ":si:c:h" opt; do
     case $opt in
     i)
         SRC_DIR="$OPTARG"
         ;;
     s)
         USE_ID="true"
+        ;;
+    c)
+        MATRIX="$OPTARG"
         ;;
     h)
         usage

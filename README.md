@@ -43,6 +43,6 @@ documentation requirement,345
 ```
 This csv file will be sorted alphabetically before being integrated in the document.
 
-Please be aware that, for now, all csv files in the source directory are interpreted as compliance matrix.
+Please be aware that, for now, only one compliance matrix can be added with the `-c` option.
 
 ![compliance matrix screenshot](./doc/compliance_matrix_screenshot.png)
