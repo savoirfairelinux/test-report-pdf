@@ -24,7 +24,7 @@ Test report
 :iconsdir: ./doc/icons/
 :sectnumlevels: 1
 
-include::test-reports-content.adoc[]
+include::test-report-content.adoc[]
 
 == About this documentation
 
