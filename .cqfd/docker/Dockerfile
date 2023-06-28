@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   ruby \
   ruby-asciidoctor-pdf \
   python3 \
+  python3-junitparser \
   && rm -rf /var/lib/apt/lists/*
 
 RUN sed -i "s/# en_US\.UTF-8 UTF-8/en_US\.UTF-8 UTF-8/" /etc/locale.gen
