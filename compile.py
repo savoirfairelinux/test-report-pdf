@@ -21,6 +21,8 @@ import os
 import glob
 from junitparser import JUnitXml
 
+ADOC_FILE_PATH = "test-report-content.adoc"
+
 def die(error_string):
     print("ERROR : ", error_string)
     sys.exit(1)
@@ -73,6 +75,24 @@ def open_test_files(directory):
 
     return xml_files
 
+def generate_adoc(xml_files):
+
+    if os.path.exists(ADOC_FILE_PATH):
+        if not os.path.isfile(ADOC_FILE_PATH):
+            die("temporary file {} is not a file".format(ADOC_FILE_PATH))
+        os.remove(ADOC_FILE_PATH)
+
+    with open(ADOC_FILE_PATH, 'w', encoding="utf-8") as adoc_file:
+        adoc_file.write("include::{}/prerequisites.adoc[opts=optional]\n".format(args.include_dir))
+        adoc_file.write("== Test reports\n")
+        adoc_file.write("include::{}/notes.adoc[opts=optional]\n".format(args.include_dir))
+
 
 args = parse_arguments()
 xml_files = open_test_files(args.include_dir)
+
+try:
+    generate_adoc(xml_files)
+    os.system("asciidoctor-pdf test-report.adoc")
+finally:
+    os.remove(ADOC_FILE_PATH)
