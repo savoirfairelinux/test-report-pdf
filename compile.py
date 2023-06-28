@@ -33,4 +33,10 @@ parser = argparse.ArgumentParser(
             formatter_class=argparse.RawDescriptionHelpFormatter)
             # formatter is used to display description with correct indentation
 
+parser.add_argument('-i', '--include_dir', help='source directory to use for xml files and additionnal adoc files ( default is example/ )', default="example")
+
+parser.add_argument('-s', '--split_test_id', help='Split test name and ID. Test name must be formated as "ID - test name".', action='store_const', const=True, default=False)
+
+parser.add_argument('-c', '--compliance_matrix', help='add the compliance matrix specified in the file.', action='append')
+
 args = parser.parse_args()
