@@ -16,11 +16,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import sys
 from junitparser import JUnitXml
 
-parser = argparse.ArgumentParser(
-            prog='test-report-pdf',
-            description='''
+def die(error_string):
+    print("ERROR : ", error_string)
+    sys.exit(1)
+
+def parse_arguments():
+
+    parser = argparse.ArgumentParser(
+        prog='test-report-pdf',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        # formatter is used to display description with correct indentation
+        description='''
     This script will automatically look for all .xml files contained in the
     source directory and integrate them in the test report. By default, one
     table will be created for each file containing all test one after another.
@@ -30,14 +39,19 @@ parser = argparse.ArgumentParser(
 
     A machine name can be specified in the table title using cukinia class
     (`logging class "string"`).
-           ''',
-            formatter_class=argparse.RawDescriptionHelpFormatter)
-            # formatter is used to display description with correct indentation
+               ''')
 
-parser.add_argument('-i', '--include_dir', help='source directory to use for xml files and additionnal adoc files ( default is example/ )', default="example")
+    parser.add_argument('-i', '--include_dir', default="example",
+        help='''source directory to use for xml files and additionnal
+        adoc files ( default is example/ )''')
 
-parser.add_argument('-s', '--split_test_id', help='Split test name and ID. Test name must be formated as "ID - test name".', action='store_const', const=True, default=False)
+    parser.add_argument('-s', '--split_test_id', const=True, default=False,
+        help='''Split test name and ID. Test name must be formated as
+        "ID - test name".''', action='store_const')
 
-parser.add_argument('-c', '--compliance_matrix', help='add the compliance matrix specified in the file.', action='append')
+    parser.add_argument('-c', '--compliance_matrix', action='append',
+        help='add the compliance matrix specified in the file.')
 
-args = parser.parse_args()
+    return parser.parse_args()
+
+args = parse_arguments()
