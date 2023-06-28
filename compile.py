@@ -17,6 +17,8 @@
 
 import argparse
 import sys
+import os
+import glob
 from junitparser import JUnitXml
 
 def die(error_string):
@@ -54,4 +56,23 @@ def parse_arguments():
 
     return parser.parse_args()
 
+
+def open_test_files(directory):
+
+    if not os.path.isdir(directory):
+        die("Directory {} does not exists".format(directory))
+
+    files = glob.glob(os.path.join(directory, '*.xml'))
+
+    if not files:
+        die("No test file found in {}".format(directory))
+
+    xml_files = []
+    for f in files:
+        xml_files.append(JUnitXml.fromfile(f))
+
+    return xml_files
+
+
 args = parse_arguments()
+xml_files = open_test_files(args.include_dir)
