@@ -19,9 +19,12 @@ import argparse
 import sys
 import os
 import glob
+import textwrap
 from junitparser import JUnitXml
 
 ADOC_FILE_PATH = "test-report-content.adoc"
+GREEN_COLOR = "#90EE90"
+RED_COLOR = "#F08080"
 
 
 def die(error_string):
@@ -106,14 +109,77 @@ def generate_adoc(xml_files):
                 args.include_dir
             )
         )
+
         adoc_file.write("== Test reports\n")
+        for xml in xml_files:
+            add_xml_to_adoc(xml, adoc_file)
+
         adoc_file.write(
             "include::{}/notes.adoc[opts=optional]\n".format(args.include_dir)
         )
 
 
+def add_xml_to_adoc(xml, adoc_file):
+
+    for suite in xml:
+
+        table_header = textwrap.dedent(
+            """
+            === Tests {_suitename_}
+            [options="header",cols="7,1",frame=all, grid=all]
+            |===
+            |Tests |Results
+        """
+        )
+
+        table_line = textwrap.dedent(
+            """
+                |{_testname_}
+                {{set:cellbgcolor!}}
+                |{_result_}
+                {{set:cellbgcolor:{_color_}}}
+            """
+        )
+
+        table_footer = textwrap.dedent(
+            """
+            |===
+            * number of tests: {_nbtests_}
+            * number of failures: {_nbfailures_}
+
+        """
+        )
+
+        adoc_file.write(table_header.format(_suitename_=suite.name))
+
+        for test in suite:
+            if test.is_passed:
+                adoc_file.write(
+                    table_line.format(
+                        _testname_=test.name,
+                        _result_="PASS",
+                        _color_=GREEN_COLOR,
+                    )
+                )
+            else:
+                adoc_file.write(
+                    table_line.format(
+                        _testname_=test.name, _result_="FAIL", _color_=RED_COLOR
+                    )
+                )
+
+        adoc_file.write(
+            table_footer.format(
+                _nbtests_=suite.tests, _nbfailures_=suite.failures
+            )
+        )
+
+
 args = parse_arguments()
 xml_files = open_test_files(args.include_dir)
+
+if args.split_test_id:
+    die("Split test ID is not implemented yet")
 
 try:
     generate_adoc(xml_files)
