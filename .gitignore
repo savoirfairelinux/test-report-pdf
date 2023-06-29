@@ -4,3 +4,5 @@ include/test-reports.adoc
 test-report.pdf
 # All included xml test files
 include/*.xml
+# SonarQube report
+pylint-report.txt
