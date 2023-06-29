@@ -23,17 +23,19 @@ from junitparser import JUnitXml
 
 ADOC_FILE_PATH = "test-report-content.adoc"
 
+
 def die(error_string):
     print("ERROR : ", error_string)
     sys.exit(1)
 
+
 def parse_arguments():
 
     parser = argparse.ArgumentParser(
-        prog='test-report-pdf',
+        prog="test-report-pdf",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         # formatter is used to display description with correct indentation
-        description='''
+        description="""
     This script will automatically look for all .xml files contained in the
     source directory and integrate them in the test report. By default, one
     table will be created for each file containing all test one after another.
@@ -43,18 +45,33 @@ def parse_arguments():
 
     A machine name can be specified in the table title using cukinia class
     (`logging class "string"`).
-               ''')
+               """,
+    )
 
-    parser.add_argument('-i', '--include_dir', default="example",
-        help='''source directory to use for xml files and additionnal
-        adoc files ( default is example/ )''')
+    parser.add_argument(
+        "-i",
+        "--include_dir",
+        default="example",
+        help="""source directory to use for xml files and additionnal
+        adoc files ( default is example/ )""",
+    )
 
-    parser.add_argument('-s', '--split_test_id', const=True, default=False,
-        help='''Split test name and ID. Test name must be formated as
-        "ID - test name".''', action='store_const')
+    parser.add_argument(
+        "-s",
+        "--split_test_id",
+        const=True,
+        default=False,
+        help="""Split test name and ID. Test name must be formated as
+        "ID - test name".""",
+        action="store_const",
+    )
 
-    parser.add_argument('-c', '--compliance_matrix', action='append',
-        help='add the compliance matrix specified in the file.')
+    parser.add_argument(
+        "-c",
+        "--compliance_matrix",
+        action="append",
+        help="add the compliance matrix specified in the file.",
+    )
 
     return parser.parse_args()
 
@@ -64,7 +81,7 @@ def open_test_files(directory):
     if not os.path.isdir(directory):
         die("Directory {} does not exists".format(directory))
 
-    files = glob.glob(os.path.join(directory, '*.xml'))
+    files = glob.glob(os.path.join(directory, "*.xml"))
 
     if not files:
         die("No test file found in {}".format(directory))
@@ -75,6 +92,7 @@ def open_test_files(directory):
 
     return xml_files
 
+
 def generate_adoc(xml_files):
 
     if os.path.exists(ADOC_FILE_PATH):
@@ -82,10 +100,16 @@ def generate_adoc(xml_files):
             die("temporary file {} is not a file".format(ADOC_FILE_PATH))
         os.remove(ADOC_FILE_PATH)
 
-    with open(ADOC_FILE_PATH, 'w', encoding="utf-8") as adoc_file:
-        adoc_file.write("include::{}/prerequisites.adoc[opts=optional]\n".format(args.include_dir))
+    with open(ADOC_FILE_PATH, "w", encoding="utf-8") as adoc_file:
+        adoc_file.write(
+            "include::{}/prerequisites.adoc[opts=optional]\n".format(
+                args.include_dir
+            )
+        )
         adoc_file.write("== Test reports\n")
-        adoc_file.write("include::{}/notes.adoc[opts=optional]\n".format(args.include_dir))
+        adoc_file.write(
+            "include::{}/notes.adoc[opts=optional]\n".format(args.include_dir)
+        )
 
 
 args = parse_arguments()
