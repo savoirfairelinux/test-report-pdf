@@ -1,6 +1,10 @@
 [project]
 org='sfl'
-name='asciidoc-report'
+name='test-report-pdf'
 
 [build]
-command='./compile.sh'
+command='./compile.py'
+flavors='sonarqube'
+
+[sonarqube]
+command='/usr/bin/python-sonar.sh'
