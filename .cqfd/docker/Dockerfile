@@ -16,21 +16,36 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND noninteractive
 
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  asciidoc \
-  bash \
-  locales \
-  ruby \
-  ruby-asciidoctor-pdf \
-  python3 \
-  python3-pip \
-  && rm -rf /var/lib/apt/lists/*
+RUN set -x \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        asciidoc \
+        black \
+        fd-find \
+        make \
+        pylint \
+        python3 \
+        python3-pip \
+        python3-sphinx \
+        openjdk-8-jre-headless \
+        ruby \
+        ruby-asciidoctor-pdf \
+        unzip \
+        wget \
+    && rm -rf /var/lib/apt/lists/
 
 RUN pip install junitparser==3.1.0
 
-RUN sed -i "s/# en_US\.UTF-8 UTF-8/en_US\.UTF-8 UTF-8/" /etc/locale.gen
-RUN locale-gen
+ARG sonar_version=4.7.0.2747
+ARG sonar_repo=https://binaries.sonarsource.com/Distribution/sonar-scanner-cli
+RUN set -x \
+    && wget -O /tmp/sonar-scanner.zip \
+    "${sonar_repo}/sonar-scanner-cli-${sonar_version}.zip" \
+    && cd /opt \
+    && unzip /tmp/sonar-scanner.zip \
+    && rm -f sonar-scanner.zip
+RUN ln -s "/opt/sonar-scanner-${sonar_version}" /opt/sonar-scanner
+RUN echo 'sonar.host.url=http://j1.sfl.team:9000/' \
+    > /opt/sonar-scanner/conf/sonar-scanner.properties
+COPY python-sonar.sh /usr/bin/python-sonar.sh
+COPY detect_sonar_errors.py /usr/bin/detect_sonar_errors.py
