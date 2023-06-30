@@ -175,7 +175,8 @@ def add_xml_to_adoc(xml, adoc_file):
         for test in suite:
 
             if args.split_test_id:
-                # TODO : return error if test name is not correctly formatted
+                if not " - " in test.name:
+                    die("Test name must be formated as 'ID - name'")
                 parts = test.name.split(" - ")
                 test_name = parts[1]
                 adoc_file.write(table_line_test_id.format(_testid_=parts[0]))
