@@ -70,6 +70,17 @@ def parse_arguments():
     )
 
     parser.add_argument(
+        "-m",
+        "--add_machine_name",
+        const=True,
+        default=False,
+        help="""Add the name of the machine in the title of each tables.
+        This machine name should be given in the test suite
+        using the classname feature of cukinia.""",
+        action="store_const",
+    )
+
+    parser.add_argument(
         "-c",
         "--compliance_matrix",
         action="append",
@@ -128,17 +139,26 @@ def write_table_header(suite, adoc_file):
 
     table_header = textwrap.dedent(
         """
-        === Tests {_suitename_}
+        === Tests {_suitename_} {_machinepart_}
         [options="header",cols="{_colsize_}",frame=all, grid=all]
         |===
         {_testid_}|Tests |Results
         """
     )
 
+    # Weird tricks to get the classname of the first test of the suite
+    # This classname is used as machine name.
+    machine_name = next(iter(suite)).classname
+    if args.add_machine_name:
+        machine_part = "for {}".format(machine_name)
+    else:
+        machine_part = ""
+
     if args.split_test_id:
         adoc_file.write(
             table_header.format(
                 _suitename_=suite.name,
+                _machinepart_=machine_part,
                 _colsize_="2,6,1",
                 _testid_="|Test ID",
             )
@@ -146,7 +166,10 @@ def write_table_header(suite, adoc_file):
     else:
         adoc_file.write(
             table_header.format(
-                _suitename_=suite.name, _colsize_="8,1", _testid_=""
+                _suitename_=suite.name,
+                _machinepart_=machine_part,
+                _colsize_="8,1",
+                _testid_="",
             )
         )
 
