@@ -111,98 +111,103 @@ def generate_adoc(xml_files):
         )
 
         adoc_file.write("== Test reports\n")
+
         for xml in xml_files:
-            add_xml_to_adoc(xml, adoc_file)
+            for suite in xml:
+                write_table_header(suite, adoc_file)
+                for test in suite:
+                    write_table_line(test, adoc_file)
+                write_table_footer(suite, adoc_file)
 
         adoc_file.write(
             "include::{}/notes.adoc[opts=optional]\n".format(args.include_dir)
         )
 
 
-def add_xml_to_adoc(xml, adoc_file):
+def write_table_header(suite, adoc_file):
 
-    for suite in xml:
+    table_header = textwrap.dedent(
+        """
+        === Tests {_suitename_}
+        [options="header",cols="{_colsize_}",frame=all, grid=all]
+        |===
+        {_testid_}|Tests |Results
+        """
+    )
 
-        table_header = textwrap.dedent(
-            """
-            === Tests {_suitename_}
-            [options="header",cols="{_colsize_}",frame=all, grid=all]
-            |===
-            {_testid_}|Tests |Results
-            """
-        )
-
-        table_line_test_id = textwrap.dedent(
-            """
-            |{_testid_}
-            {{set:cellbgcolor!}}
-            """
-        )
-
-        table_line = textwrap.dedent(
-            """
-            |{_testname_}
-            {{set:cellbgcolor!}}
-            |{_result_}
-            {{set:cellbgcolor:{_color_}}}
-            """
-        )
-
-        table_footer = textwrap.dedent(
-            """
-            |===
-            * number of tests: {_nbtests_}
-            * number of failures: {_nbfailures_}
-
-            """
-        )
-
-        if args.split_test_id:
-            adoc_file.write(
-                table_header.format(
-                    _suitename_=suite.name,
-                    _colsize_="2,6,1",
-                    _testid_="|Test ID",
-                )
-            )
-        else:
-            adoc_file.write(
-                table_header.format(
-                    _suitename_=suite.name, _colsize_="8,1", _testid_=""
-                )
-            )
-
-        for test in suite:
-
-            if args.split_test_id:
-                if not " - " in test.name:
-                    die("Test name must be formated as 'ID - name'")
-                parts = test.name.split(" - ")
-                test_name = parts[1]
-                adoc_file.write(table_line_test_id.format(_testid_=parts[0]))
-            else:
-                test_name = test.name
-
-            if test.is_passed:
-                adoc_file.write(
-                    table_line.format(
-                        _testname_=test_name,
-                        _result_="PASS",
-                        _color_=GREEN_COLOR,
-                    )
-                )
-            else:
-                adoc_file.write(
-                    table_line.format(
-                        _testname_=test_name, _result_="FAIL", _color_=RED_COLOR
-                    )
-                )
-
+    if args.split_test_id:
         adoc_file.write(
-            table_footer.format(
-                _nbtests_=suite.tests, _nbfailures_=suite.failures
+            table_header.format(
+                _suitename_=suite.name,
+                _colsize_="2,6,1",
+                _testid_="|Test ID",
             )
         )
+    else:
+        adoc_file.write(
+            table_header.format(
+                _suitename_=suite.name, _colsize_="8,1", _testid_=""
+            )
+        )
+
+
+def write_table_line(test, adoc_file):
+
+    table_line_test_id = textwrap.dedent(
+        """
+        |{_testid_}
+        {{set:cellbgcolor!}}
+        """
+    )
+
+    table_line = textwrap.dedent(
+        """
+        |{_testname_}
+        {{set:cellbgcolor!}}
+        |{_result_}
+        {{set:cellbgcolor:{_color_}}}
+        """
+    )
+
+    if args.split_test_id:
+        if not " - " in test.name:
+            die("Test name must be formated as 'ID - name'")
+        parts = test.name.split(" - ")
+        test_name = parts[1]
+        adoc_file.write(table_line_test_id.format(_testid_=parts[0]))
+    else:
+        test_name = test.name
+
+    if test.is_passed:
+        adoc_file.write(
+            table_line.format(
+                _testname_=test_name,
+                _result_="PASS",
+                _color_=GREEN_COLOR,
+            )
+        )
+    else:
+        adoc_file.write(
+            table_line.format(
+                _testname_=test_name, _result_="FAIL", _color_=RED_COLOR
+            )
+        )
+
+
+def write_table_footer(suite, adoc_file):
+
+    table_footer = textwrap.dedent(
+        """
+        |===
+        * number of tests: {_nbtests_}
+        * number of failures: {_nbfailures_}
+
+        """
+    )
+
+    adoc_file.write(
+        table_footer.format(_nbtests_=suite.tests, _nbfailures_=suite.failures)
+    )
 
 
 args = parse_arguments()
