@@ -126,18 +126,25 @@ def add_xml_to_adoc(xml, adoc_file):
         table_header = textwrap.dedent(
             """
             === Tests {_suitename_}
-            [options="header",cols="7,1",frame=all, grid=all]
+            [options="header",cols="{_colsize_}",frame=all, grid=all]
             |===
-            |Tests |Results
-        """
+            {_testid_}|Tests |Results
+            """
+        )
+
+        table_line_test_id = textwrap.dedent(
+            """
+            |{_testid_}
+            {{set:cellbgcolor!}}
+            """
         )
 
         table_line = textwrap.dedent(
             """
-                |{_testname_}
-                {{set:cellbgcolor!}}
-                |{_result_}
-                {{set:cellbgcolor:{_color_}}}
+            |{_testname_}
+            {{set:cellbgcolor!}}
+            |{_result_}
+            {{set:cellbgcolor:{_color_}}}
             """
         )
 
@@ -147,16 +154,38 @@ def add_xml_to_adoc(xml, adoc_file):
             * number of tests: {_nbtests_}
             * number of failures: {_nbfailures_}
 
-        """
+            """
         )
 
-        adoc_file.write(table_header.format(_suitename_=suite.name))
+        if args.split_test_id:
+            adoc_file.write(
+                table_header.format(
+                    _suitename_=suite.name,
+                    _colsize_="2,6,1",
+                    _testid_="|Test ID",
+                )
+            )
+        else:
+            adoc_file.write(
+                table_header.format(
+                    _suitename_=suite.name, _colsize_="8,1", _testid_=""
+                )
+            )
 
         for test in suite:
+
+            if args.split_test_id:
+                # TODO : return error if test name is not correctly formatted
+                parts = test.name.split(" - ")
+                test_name = parts[1]
+                adoc_file.write(table_line_test_id.format(_testid_=parts[0]))
+            else:
+                test_name = test.name
+
             if test.is_passed:
                 adoc_file.write(
                     table_line.format(
-                        _testname_=test.name,
+                        _testname_=test_name,
                         _result_="PASS",
                         _color_=GREEN_COLOR,
                     )
@@ -164,7 +193,7 @@ def add_xml_to_adoc(xml, adoc_file):
             else:
                 adoc_file.write(
                     table_line.format(
-                        _testname_=test.name, _result_="FAIL", _color_=RED_COLOR
+                        _testname_=test_name, _result_="FAIL", _color_=RED_COLOR
                     )
                 )
 
@@ -178,11 +207,10 @@ def add_xml_to_adoc(xml, adoc_file):
 args = parse_arguments()
 xml_files = open_test_files(args.include_dir)
 
-if args.split_test_id:
-    die("Split test ID is not implemented yet")
-
 try:
     generate_adoc(xml_files)
     os.system("asciidoctor-pdf test-report.adoc")
 finally:
     os.remove(ADOC_FILE_PATH)
+# TODO : return the exception if something bad happen
+# TODO: add logs
