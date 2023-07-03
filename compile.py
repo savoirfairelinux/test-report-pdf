@@ -16,9 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import sys
-import os
+import csv
 import glob
+import os
+import sys
 import textwrap
 from junitparser import JUnitXml
 
@@ -84,7 +85,8 @@ def parse_arguments():
         "-c",
         "--compliance_matrix",
         action="append",
-        help="add the compliance matrix specified in the file.",
+        help="""add the compliance matrix specified in the file.
+        Can be used multiple times for multiple matrices to add.""",
     )
 
     return parser.parse_args()
@@ -129,6 +131,16 @@ def generate_adoc(xml_files):
                 for test in suite:
                     write_table_line(test, adoc_file)
                 write_table_footer(suite, adoc_file)
+
+        if args.compliance_matrix:
+            if not args.split_test_id:
+                die(
+                    "Can't include compliance matrix, test id feature is not enabled"
+                )
+            adoc_file.write("== Compliance Matrix\n")
+
+            for matrix in args.compliance_matrix:
+                add_compliance_matrix(matrix, adoc_file)
 
         adoc_file.write(
             "include::{}/notes.adoc[opts=optional]\n".format(args.include_dir)
@@ -231,6 +243,50 @@ def write_table_footer(suite, adoc_file):
     adoc_file.write(
         table_footer.format(_nbtests_=suite.tests, _nbfailures_=suite.failures)
     )
+
+
+def add_compliance_matrix(matrix, adoc_file):
+
+    matrix_header = textwrap.dedent(
+        """
+        === Matrix {_matrixname_}
+        [options="header",cols="6,2,1",frame=all, grid=all]
+        |===
+        |Requirement |Test id |Status
+        """
+    )
+
+    matrix_line = textwrap.dedent(
+        """
+        |{_req_}
+        {{set:cellbgcolor!}}
+        |{_id_}
+        |{_status_}
+        {{set:cellbgcolor:{_color_}}}
+        """
+    )
+
+    adoc_file.write(matrix_header.format(_matrixname_=matrix))
+
+    if not os.path.exists(matrix):
+        die("Matrix file {} doesn't exists".format(matrix))
+    if not os.path.isfile(matrix):
+        die("Matrix file {} is not a file".format(matrix))
+
+    with open(matrix, "r", encoding="utf-8") as matrix_file:
+
+        data = csv.reader(matrix_file, delimiter=",", quotechar='"')
+        for row in data:
+            adoc_file.write(
+                matrix_line.format(
+                    _req_=row[0],
+                    _id_=row[1],
+                    _status_="FAIL",
+                    _color_=RED_COLOR,
+                )
+            )
+
+    adoc_file.write("|===\n\n")
 
 
 args = parse_arguments()
