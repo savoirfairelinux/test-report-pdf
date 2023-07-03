@@ -26,6 +26,7 @@ from junitparser import JUnitXml
 ADOC_FILE_PATH = "test-report-content.adoc"
 GREEN_COLOR = "#90EE90"
 RED_COLOR = "#F08080"
+ORANGE_COLOR = "#ee6644"
 
 
 def die(error_string):
@@ -140,7 +141,7 @@ def generate_adoc(xml_files):
             adoc_file.write("== Compliance Matrix\n")
 
             for matrix in args.compliance_matrix:
-                add_compliance_matrix(matrix, adoc_file)
+                add_compliance_matrix(matrix, adoc_file, xml_files)
 
         adoc_file.write(
             "include::{}/notes.adoc[opts=optional]\n".format(args.include_dir)
@@ -245,7 +246,7 @@ def write_table_footer(suite, adoc_file):
     )
 
 
-def add_compliance_matrix(matrix, adoc_file):
+def add_compliance_matrix(matrix, adoc_file, xml_files):
 
     matrix_header = textwrap.dedent(
         """
@@ -276,17 +277,59 @@ def add_compliance_matrix(matrix, adoc_file):
     with open(matrix, "r", encoding="utf-8") as matrix_file:
 
         data = csv.reader(matrix_file, delimiter=",", quotechar='"')
+
         for row in data:
-            adoc_file.write(
-                matrix_line.format(
-                    _req_=row[0],
-                    _id_=row[1],
-                    _status_="FAIL",
-                    _color_=RED_COLOR,
+
+            present, passed = check_test(row[1], xml_files)
+            if not present:
+                adoc_file.write(
+                    matrix_line.format(
+                        _req_=row[0],
+                        _id_=row[1],
+                        _status_="ABSENT",
+                        _color_=ORANGE_COLOR,
+                    )
                 )
-            )
+            elif passed:
+                adoc_file.write(
+                    matrix_line.format(
+                        _req_=row[0],
+                        _id_=row[1],
+                        _status_="PASS",
+                        _color_=GREEN_COLOR,
+                    )
+                )
+            else:
+                adoc_file.write(
+                    matrix_line.format(
+                        _req_=row[0],
+                        _id_=row[1],
+                        _status_="FAIL",
+                        _color_=RED_COLOR,
+                    )
+                )
 
     adoc_file.write("|===\n\n")
+
+
+# This function read all the xml and look for all tests that matches a given ID.
+# It return present=True if the ID is found at least once
+# It return passed=False if at least one test is failed.
+def check_test(test_id, xml_files):
+
+    present = False
+    passed = True
+
+    for xml in xml_files:
+        for suite in xml:
+            for test in suite:
+                current_id = test.name.split(" - ")[0]
+                if current_id == test_id:
+                    present = True
+                    if not test.is_passed:
+                        passed = False
+
+    return present, passed
 
 
 args = parse_arguments()
