@@ -119,7 +119,7 @@ def generate_adoc(xml_files):
 
     with open(ADOC_FILE_PATH, "w", encoding="utf-8") as adoc_file:
         adoc_file.write(
-            "include::{}/prerequisites.adoc[opts=optional]\n".format(
+            "include::{}/prerequisites.adoc[opts=optional]\n\n".format(
                 args.include_dir
             )
         )
