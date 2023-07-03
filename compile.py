@@ -257,11 +257,17 @@ def add_compliance_matrix(matrix, adoc_file, xml_files):
         """
     )
 
-    matrix_line = textwrap.dedent(
+    matrix_line_req = textwrap.dedent(
         """
-        |{_req_}
+        .{_nbtests_}+|{_req_}
         {{set:cellbgcolor!}}
+        """
+    )
+
+    matrix_line_test = textwrap.dedent(
+        """
         |{_id_}
+        {{set:cellbgcolor!}}
         |{_status_}
         {{set:cellbgcolor:{_color_}}}
         """
@@ -276,34 +282,45 @@ def add_compliance_matrix(matrix, adoc_file, xml_files):
 
     with open(matrix, "r", encoding="utf-8") as matrix_file:
 
-        data = csv.reader(matrix_file, delimiter=",", quotechar='"')
+        requirements = list(sorted(csv.reader(matrix_file)))
+        # requirements is a list, each item of the list has the form
+        # ["requirement name", test_ID]
+        current_requirement = ""
 
-        for row in data:
+        for req, test_id in requirements:
 
-            present, passed = check_test(row[1], xml_files)
+            if req != current_requirement:
+                current_requirement = req
+                nb_tests = sum([current_requirement == r[0] for r in requirements])
+
+                adoc_file.write(
+                    matrix_line_req.format(
+                        _nbtests_=nb_tests,
+                        _req_=req,
+                    )
+                )
+
+            present, passed = check_test(test_id, xml_files)
             if not present:
                 adoc_file.write(
-                    matrix_line.format(
-                        _req_=row[0],
-                        _id_=row[1],
+                    matrix_line_test.format(
+                        _id_=test_id,
                         _status_="ABSENT",
                         _color_=ORANGE_COLOR,
                     )
                 )
             elif passed:
                 adoc_file.write(
-                    matrix_line.format(
-                        _req_=row[0],
-                        _id_=row[1],
+                    matrix_line_test.format(
+                        _id_=test_id,
                         _status_="PASS",
                         _color_=GREEN_COLOR,
                     )
                 )
             else:
                 adoc_file.write(
-                    matrix_line.format(
-                        _req_=row[0],
-                        _id_=row[1],
+                    matrix_line_test.format(
+                        _id_=test_id,
                         _status_="FAIL",
                         _color_=RED_COLOR,
                     )
