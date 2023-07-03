@@ -133,15 +133,7 @@ def generate_adoc(xml_files):
                     write_table_line(test, adoc_file)
                 write_table_footer(suite, adoc_file)
 
-        if args.compliance_matrix:
-            if not args.split_test_id:
-                die(
-                    "Can't include compliance matrix, test id feature is not enabled"
-                )
-            adoc_file.write("== Compliance Matrix\n")
-
-            for matrix in args.compliance_matrix:
-                add_compliance_matrix(matrix, adoc_file, xml_files)
+        add_compliance_matrix(xml_files, adoc_file)
 
         adoc_file.write(
             "include::{}/notes.adoc[opts=optional]\n".format(args.include_dir)
@@ -246,16 +238,51 @@ def write_table_footer(suite, adoc_file):
     )
 
 
-def add_compliance_matrix(matrix, adoc_file, xml_files):
+def add_compliance_matrix(xml_files, adoc_file):
 
-    matrix_header = textwrap.dedent(
-        """
-        === Matrix {_matrixname_}
-        [options="header",cols="6,2,1",frame=all, grid=all]
-        |===
-        |Requirement |Test id |Status
-        """
-    )
+    if args.compliance_matrix:
+        if not args.split_test_id:
+            die(
+                "Can't include compliance matrix, test id feature is not enabled"
+            )
+        adoc_file.write("== Compliance Matrix\n")
+
+        for matrix in args.compliance_matrix:
+
+            if not os.path.exists(matrix):
+                die("Matrix file {} doesn't exists".format(matrix))
+            if not os.path.isfile(matrix):
+                die("Matrix file {} is not a file".format(matrix))
+
+            matrix_header = textwrap.dedent(
+                """
+                === Matrix {_matrixname_}
+                [options="header",cols="6,2,1",frame=all, grid=all]
+                |===
+                |Requirement |Test id |Status
+                """
+            )
+
+            adoc_file.write(matrix_header.format(_matrixname_=matrix))
+
+            with open(matrix, "r", encoding="utf-8") as matrix_file:
+
+                requirements = list(sorted(csv.reader(matrix_file)))
+                # requirements is a list, each item of the list has the form
+                # ["requirement name", test_ID]
+                write_matrix_tests(requirements, xml_files, adoc_file)
+
+            matrix_footer = textwrap.dedent(
+                """
+                |===
+
+                """
+            )
+
+            adoc_file.write(matrix_footer)
+
+
+def write_matrix_tests(requirements, xml_files, adoc_file):
 
     matrix_line_req = textwrap.dedent(
         """
@@ -273,60 +300,51 @@ def add_compliance_matrix(matrix, adoc_file, xml_files):
         """
     )
 
-    adoc_file.write(matrix_header.format(_matrixname_=matrix))
+    current_requirement = ""
 
-    if not os.path.exists(matrix):
-        die("Matrix file {} doesn't exists".format(matrix))
-    if not os.path.isfile(matrix):
-        die("Matrix file {} is not a file".format(matrix))
+    for req, test_id in requirements:
 
-    with open(matrix, "r", encoding="utf-8") as matrix_file:
+        # This code section uses the span rows feature of asciidoc
+        # https://docs.asciidoctor.org/asciidoc/latest/tables/span-cells/
+        if req != current_requirement:
+            current_requirement = req
+            nb_tests = sum([current_requirement == r[0] for r in requirements])
+            # nb_tests control the number of lines the requirement cell will
+            # be spanned. This number should be equal to the number of times
+            # the same requirement appears
 
-        requirements = list(sorted(csv.reader(matrix_file)))
-        # requirements is a list, each item of the list has the form
-        # ["requirement name", test_ID]
-        current_requirement = ""
-
-        for req, test_id in requirements:
-
-            if req != current_requirement:
-                current_requirement = req
-                nb_tests = sum([current_requirement == r[0] for r in requirements])
-
-                adoc_file.write(
-                    matrix_line_req.format(
-                        _nbtests_=nb_tests,
-                        _req_=req,
-                    )
+            adoc_file.write(
+                matrix_line_req.format(
+                    _nbtests_=nb_tests,
+                    _req_=req,
                 )
+            )
 
-            present, passed = check_test(test_id, xml_files)
-            if not present:
-                adoc_file.write(
-                    matrix_line_test.format(
-                        _id_=test_id,
-                        _status_="ABSENT",
-                        _color_=ORANGE_COLOR,
-                    )
+        present, passed = check_test(test_id, xml_files)
+        if not present:
+            adoc_file.write(
+                matrix_line_test.format(
+                    _id_=test_id,
+                    _status_="ABSENT",
+                    _color_=ORANGE_COLOR,
                 )
-            elif passed:
-                adoc_file.write(
-                    matrix_line_test.format(
-                        _id_=test_id,
-                        _status_="PASS",
-                        _color_=GREEN_COLOR,
-                    )
+            )
+        elif passed:
+            adoc_file.write(
+                matrix_line_test.format(
+                    _id_=test_id,
+                    _status_="PASS",
+                    _color_=GREEN_COLOR,
                 )
-            else:
-                adoc_file.write(
-                    matrix_line_test.format(
-                        _id_=test_id,
-                        _status_="FAIL",
-                        _color_=RED_COLOR,
-                    )
+            )
+        else:
+            adoc_file.write(
+                matrix_line_test.format(
+                    _id_=test_id,
+                    _status_="FAIL",
+                    _color_=RED_COLOR,
                 )
-
-    adoc_file.write("|===\n\n")
+            )
 
 
 # This function read all the xml and look for all tests that matches a given ID.
