@@ -22,12 +22,13 @@ RUN set -x \
         asciidoc \
         black \
         fd-find \
+        git \
         make \
+        openjdk-8-jre-headless \
         pylint \
         python3 \
         python3-pip \
         python3-sphinx \
-        openjdk-8-jre-headless \
         ruby \
         ruby-asciidoctor-pdf \
         unzip \
@@ -49,3 +50,7 @@ RUN echo 'sonar.host.url=http://j1.sfl.team:9000/' \
     > /opt/sonar-scanner/conf/sonar-scanner.properties
 COPY python-sonar.sh /usr/bin/python-sonar.sh
 COPY detect_sonar_errors.py /usr/bin/detect_sonar_errors.py
+
+# Install cukinia to compile examples
+RUN git clone https://github.com/savoirfairelinux/cukinia.git /tmp/cukinia
+RUN cp /tmp/cukinia/cukinia /usr/bin
