@@ -22,7 +22,6 @@ RUN set -x \
         asciidoc \
         black \
         fd-find \
-        git \
         make \
         openjdk-8-jre-headless \
         pylint \
@@ -52,5 +51,5 @@ COPY python-sonar.sh /usr/bin/python-sonar.sh
 COPY detect_sonar_errors.py /usr/bin/detect_sonar_errors.py
 
 # Install cukinia to compile examples
-RUN git clone https://github.com/savoirfairelinux/cukinia.git /tmp/cukinia
-RUN cp /tmp/cukinia/cukinia /usr/bin
+ADD https://raw.githubusercontent.com/savoirfairelinux/cukinia/master/cukinia /usr/bin/cukinia
+RUN chmod +xr /usr/bin/cukinia
