@@ -56,9 +56,8 @@ def parse_arguments():
     parser.add_argument(
         "-i",
         "--include_dir",
-        default="example",
         help="""source directory to use for xml files and additionnal
-        adoc files ( default is example/ )""",
+        adoc files.""",
     )
 
     parser.add_argument(
