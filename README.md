@@ -6,7 +6,7 @@ This tool is intended to parse cukinia generated Junit files.
 
 ## Usage
 
- $ ./compile.sh -h
+ $ ./compile.py -h
 
 A docker support is provided using [cqfd](https://github.com/savoirfairelinux/cqfd).
 When building directly on the machine, asciidoctor-pdf and junitparser python package are required.
