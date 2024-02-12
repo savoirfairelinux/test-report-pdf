@@ -22,6 +22,7 @@ import os
 import sys
 import textwrap
 from junitparser import JUnitXml
+from datetime import datetime
 
 ADOC_FILE_PATH = "test-report-content.adoc"
 GREEN_COLOR = "#90EE90"
@@ -371,7 +372,8 @@ xml_files = open_test_files(args.include_dir)
 
 try:
     generate_adoc(xml_files)
-    os.system("asciidoctor-pdf test-report.adoc")
+    date = datetime.now().astimezone().strftime("%-d %B %Y, %H:%M:%S %Z")
+    os.system(f"asciidoctor-pdf -a revdate='{date}' test-report.adoc")
 finally:
     os.remove(ADOC_FILE_PATH)
 # TODO : return the exception if something bad happen

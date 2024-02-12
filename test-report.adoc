@@ -23,6 +23,7 @@ Test report
 :icons:
 :iconsdir: ./doc/icons/
 :sectnumlevels: 1
+:revdate:
 
 include::test-report-content.adoc[]
 
