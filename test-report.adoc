@@ -14,7 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 :imagesdir: ./doc/images/
-:pdf-theme: themes/sfl-theme.yml
+:pdf-theme: themes/theme.yml
 :doctype: book
 
 = Test report {project}
