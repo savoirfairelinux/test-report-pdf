@@ -373,7 +373,8 @@ xml_files = open_test_files(args.include_dir)
 try:
     generate_adoc(xml_files)
     date = datetime.now().astimezone().strftime("%-d %B %Y, %H:%M:%S %Z")
-    os.system(f"asciidoctor-pdf -a revdate='{date}' test-report.adoc")
+    year = datetime.now().astimezone().strftime("%Y")
+    os.system(f"asciidoctor-pdf -a revdate='{date}' -a year='{year}' test-report.adoc")
 finally:
     os.remove(ADOC_FILE_PATH)
 # TODO : return the exception if something bad happen
