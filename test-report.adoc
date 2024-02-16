@@ -24,6 +24,8 @@ Test report
 :iconsdir: ./doc/icons/
 :sectnumlevels: 1
 :revdate:
+:author: Savoir-faire Linux
+:email: contact@savoirfairelinux
 
 include::test-report-content.adoc[]
 

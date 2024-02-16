@@ -25,6 +25,13 @@ title_page:
     font_color: #ffffff
     line_height: 0.9
     text-transform: uppercase
+  authors:
+    margin-top: 40
+    content:
+      with_email: |
+          Receiver: {author}
+          Contact: <{email}>
+    font-color: #181818
 code:
   font_color: #333333
   font_style: normal
