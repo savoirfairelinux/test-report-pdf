@@ -374,7 +374,11 @@ try:
     generate_adoc(xml_files)
     date = datetime.now().astimezone().strftime("%-d %B %Y, %H:%M:%S %Z")
     year = datetime.now().astimezone().strftime("%Y")
-    os.system(f"asciidoctor-pdf -a revdate='{date}' -a year='{year}' test-report.adoc")
+    os.system(f"asciidoctor-pdf \
+            -r ./extended-pdf-converter.rb \
+            -a revdate='{date}' \
+            -a year='{year}' \
+            test-report.adoc")
 finally:
     os.remove(ADOC_FILE_PATH)
 # TODO : return the exception if something bad happen

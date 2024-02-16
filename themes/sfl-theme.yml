@@ -47,3 +47,8 @@ footer:
     center:
       content: Copyright © {year} Savoir-faire Linux
   recto: *shared_footer
+  title:
+      center:
+        content: |
+            Copyright © {year} Savoir-faire Linux
+            The registered trademark Linux® is used pursuant to a sublicense from LMI, the exclusive license of Linus Torvalds, owner of the mark on a world-wide basis.
