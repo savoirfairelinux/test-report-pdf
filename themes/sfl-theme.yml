@@ -41,3 +41,9 @@ table:
   head:
     font-size: 10
     background-color: #56b0c9
+footer:
+  height: 0.75in
+  verso: &shared_footer
+    center:
+      content: Copyright © {year} Savoir-faire Linux
+  recto: *shared_footer
