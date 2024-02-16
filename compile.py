@@ -90,6 +90,18 @@ def parse_arguments():
         Can be used multiple times for multiple matrices to add.""",
     )
 
+    parser.add_argument(
+        "-C",
+        "--client_name",
+        help="""Name of the client. This will be added in receiver field""",
+    )
+
+    parser.add_argument(
+        "-p",
+        "--project_name",
+        help="""Name of the project. This will be added to the report title""",
+    )
+
     return parser.parse_args()
 
 
@@ -378,6 +390,8 @@ try:
             -r ./extended-pdf-converter.rb \
             -a revdate='{date}' \
             -a year='{year}' \
+            -a author='{args.client_name}' \
+            -a project='{args.project_name}' \
             test-report.adoc")
 finally:
     os.remove(ADOC_FILE_PATH)

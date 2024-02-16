@@ -17,8 +17,7 @@
 :pdf-theme: themes/sfl-theme.yml
 :doctype: book
 
-Test report
-===========
+= Test report {project}
 :toc:
 :icons:
 :iconsdir: ./doc/icons/
