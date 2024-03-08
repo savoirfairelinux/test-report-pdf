@@ -21,13 +21,30 @@ import glob
 import os
 import sys
 import textwrap
-from junitparser import JUnitXml
+from junitparser import TestCase, JUnitXml, Properties
 from datetime import datetime
 
 ADOC_FILE_PATH = "test-report-content.adoc"
 GREEN_COLOR = "#90EE90"
 RED_COLOR = "#F08080"
 ORANGE_COLOR = "#ee6644"
+
+
+class CukiniaTest(TestCase):
+    '''
+    Custom class to get property value in TestCase
+    '''
+    def get_property_value(self, name):
+        '''
+        Gets a property from a testcase.
+        '''
+        props = self.child(Properties)
+        if props is None:
+            return None
+        for prop in props:
+            if prop.name == name:
+                return prop.value
+        return None
 
 
 def die(error_string):
@@ -59,16 +76,6 @@ def parse_arguments():
         "--include_dir",
         help="""source directory to use for xml files and additionnal
         adoc files.""",
-    )
-
-    parser.add_argument(
-        "-s",
-        "--split_test_id",
-        const=True,
-        default=False,
-        help="""Split test name and ID. Test name must be formated as
-        "ID - test name".""",
-        action="store_const",
     )
 
     parser.add_argument(
@@ -140,19 +147,32 @@ def generate_adoc(xml_files):
 
         for xml in xml_files:
             for suite in xml:
-                write_table_header(suite, adoc_file)
+                has_test_id = check_for_id(suite)
+                write_table_header(suite, adoc_file, has_test_id)
                 for test in suite:
-                    write_table_line(test, adoc_file)
+                    write_table_line(CukiniaTest.fromelem(test), adoc_file,
+                                     has_test_id)
                 write_table_footer(suite, adoc_file)
 
-        add_compliance_matrix(xml_files, adoc_file)
+        add_compliance_matrix(xml_files, adoc_file, has_test_id)
 
         adoc_file.write(
             "include::{}/notes.adoc[opts=optional]\n".format(args.include_dir)
         )
 
 
-def write_table_header(suite, adoc_file):
+def check_for_id(suite):
+    '''
+    Check in the first test if there is an id. If yes return True otherwise
+    return False
+    '''
+    for test in suite:
+        if(CukiniaTest.fromelem(test).get_property_value("cukinia.id")):
+            return True
+        else:
+            return False
+
+def write_table_header(suite, adoc_file, has_test_id):
 
     table_header = textwrap.dedent(
         """
@@ -171,7 +191,7 @@ def write_table_header(suite, adoc_file):
     else:
         machine_part = ""
 
-    if args.split_test_id:
+    if has_test_id:
         adoc_file.write(
             table_header.format(
                 _suitename_=suite.name,
@@ -191,7 +211,7 @@ def write_table_header(suite, adoc_file):
         )
 
 
-def write_table_line(test, adoc_file):
+def write_table_line(test, adoc_file, has_test_id):
 
     table_line_test_id = textwrap.dedent(
         """
@@ -209,19 +229,14 @@ def write_table_line(test, adoc_file):
         """
     )
 
-    if args.split_test_id:
-        if not " - " in test.name:
-            die("Test name must be formated as 'ID - name'")
-        parts = test.name.split(" - ")
-        test_name = parts[1]
-        adoc_file.write(table_line_test_id.format(_testid_=parts[0]))
-    else:
-        test_name = test.name
+    if has_test_id:
+        adoc_file.write(table_line_test_id.format(
+            _testid_=test.get_property_value("cukinia.id")))
 
     if test.is_passed:
         adoc_file.write(
             table_line.format(
-                _testname_=test_name,
+                _testname_=test.name,
                 _result_="PASS",
                 _color_=GREEN_COLOR,
             )
@@ -229,7 +244,7 @@ def write_table_line(test, adoc_file):
     else:
         adoc_file.write(
             table_line.format(
-                _testname_=test_name, _result_="FAIL", _color_=RED_COLOR
+                _testname_=test.name, _result_="FAIL", _color_=RED_COLOR
             )
         )
 
@@ -250,10 +265,10 @@ def write_table_footer(suite, adoc_file):
     )
 
 
-def add_compliance_matrix(xml_files, adoc_file):
+def add_compliance_matrix(xml_files, adoc_file, has_test_id):
 
     if args.compliance_matrix:
-        if not args.split_test_id:
+        if not has_test_id:
             die(
                 "Can't include compliance matrix, test id feature is not enabled"
             )
@@ -370,7 +385,9 @@ def check_test(test_id, xml_files):
     for xml in xml_files:
         for suite in xml:
             for test in suite:
-                current_id = test.name.split(" - ")[0]
+                current_id = CukiniaTest.fromelem(test).get_property_value(
+                    "cukinia.id"
+                )
                 if current_id == test_id:
                     present = True
                     if not test.is_passed:
