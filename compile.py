@@ -236,7 +236,7 @@ def write_table_line(test, adoc_file, has_test_id):
     if test.is_passed:
         adoc_file.write(
             table_line.format(
-                _testname_=test.name,
+                _testname_=test.name.replace('|', '\|'),
                 _result_="PASS",
                 _color_=GREEN_COLOR,
             )
@@ -244,7 +244,9 @@ def write_table_line(test, adoc_file, has_test_id):
     else:
         adoc_file.write(
             table_line.format(
-                _testname_=test.name, _result_="FAIL", _color_=RED_COLOR
+                _testname_=test.name.replace('|', '\|'),
+                _result_="FAIL",
+                _color_=RED_COLOR
             )
         )
 
