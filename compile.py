@@ -154,11 +154,14 @@ def generate_adoc(xml_files):
                                      has_test_id)
                 write_table_footer(suite, adoc_file)
 
-        add_compliance_matrix(xml_files, adoc_file, has_test_id)
+        return_code = add_compliance_matrix(xml_files, adoc_file, has_test_id)
+
 
         adoc_file.write(
             "include::{}/notes.adoc[opts=optional]\n".format(args.include_dir)
         )
+
+    return return_code
 
 
 def check_for_id(suite):
@@ -269,6 +272,8 @@ def write_table_footer(suite, adoc_file):
 
 def add_compliance_matrix(xml_files, adoc_file, has_test_id):
 
+    return_code = 0
+
     if args.compliance_matrix:
         if not has_test_id:
             die(
@@ -299,7 +304,9 @@ def add_compliance_matrix(xml_files, adoc_file, has_test_id):
                 requirements = list(sorted(csv.reader(matrix_file)))
                 # requirements is a list, each item of the list has the form
                 # ["requirement name", test_ID]
-                write_matrix_tests(requirements, xml_files, adoc_file)
+                ret = write_matrix_tests(requirements, xml_files, adoc_file)
+                if ret == 1:
+                    return_code = 1
 
             matrix_footer = textwrap.dedent(
                 """
@@ -310,8 +317,12 @@ def add_compliance_matrix(xml_files, adoc_file, has_test_id):
 
             adoc_file.write(matrix_footer)
 
+    return return_code
+
 
 def write_matrix_tests(requirements, xml_files, adoc_file):
+
+    return_code = 0
 
     matrix_line_req = textwrap.dedent(
         """
@@ -358,6 +369,8 @@ def write_matrix_tests(requirements, xml_files, adoc_file):
                     _color_=ORANGE_COLOR,
                 )
             )
+            print(f"ERROR : Test id {test_id} is not present")
+            return_code = 1
         elif passed:
             adoc_file.write(
                 matrix_line_test.format(
@@ -374,6 +387,8 @@ def write_matrix_tests(requirements, xml_files, adoc_file):
                     _color_=RED_COLOR,
                 )
             )
+
+    return return_code
 
 
 # This function read all the xml and look for all tests that matches a given ID.
@@ -402,7 +417,7 @@ args = parse_arguments()
 xml_files = open_test_files(args.include_dir)
 
 try:
-    generate_adoc(xml_files)
+    return_code = generate_adoc(xml_files)
     date = datetime.now().astimezone().strftime("%-d %B %Y, %H:%M:%S %Z")
     year = datetime.now().astimezone().strftime("%Y")
     os.system(f"asciidoctor-pdf \
@@ -414,5 +429,7 @@ try:
             test-report.adoc")
 finally:
     os.remove(ADOC_FILE_PATH)
+
+sys.exit(return_code)
 # TODO : return the exception if something bad happen
 # TODO: add logs
