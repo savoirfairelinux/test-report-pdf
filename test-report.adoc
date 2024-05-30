@@ -24,7 +24,7 @@
 :sectnumlevels: 1
 :revdate:
 :author: Savoir-faire Linux
-:email: contact@savoirfairelinux
+:email: contact@savoirfairelinux.com
 
 include::test-report-content.adoc[]
 
