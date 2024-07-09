@@ -154,8 +154,9 @@ def generate_adoc(xml_files):
                                      has_test_id)
                 write_table_footer(suite, adoc_file)
 
-        return_code = add_compliance_matrix(xml_files, adoc_file, has_test_id)
-
+        return_code = 0
+        if args.compliance_matrix:
+            return_code = add_compliance_matrix(xml_files, adoc_file, has_test_id)
 
         adoc_file.write(
             "include::{}/notes.adoc[opts=optional]\n".format(args.include_dir)
@@ -272,55 +273,70 @@ def write_table_footer(suite, adoc_file):
 
 def add_compliance_matrix(xml_files, adoc_file, has_test_id):
 
+    matrix_header = textwrap.dedent(
+        """
+        === Matrix {_matrixname_} {_machinepart_}
+        [options="header",cols="6,2,1",frame=all, grid=all]
+        |===
+        |Requirement |Test id |Status
+        """
+    )
+
+    matrix_footer = textwrap.dedent(
+        """
+        |===
+
+        """
+    )
+
+    machines_list = []
+    for xml in xml_files:
+        for suite in xml:
+            for test in suite:
+                if test.classname not in machines_list:
+                    machines_list.append(test.classname)
+
     return_code = 0
 
-    if args.compliance_matrix:
-        if not has_test_id:
-            die(
-                "Can't include compliance matrix, test id feature is not enabled"
-            )
-        adoc_file.write("== Compliance Matrix\n")
+    if not has_test_id:
+        die("Can't include compliance matrix, test id feature is not enabled")
+    adoc_file.write("== Compliance Matrix\n")
 
-        for matrix in args.compliance_matrix:
+    for matrix in args.compliance_matrix:
 
-            if not os.path.exists(matrix):
-                die("Matrix file {} doesn't exists".format(matrix))
-            if not os.path.isfile(matrix):
-                die("Matrix file {} is not a file".format(matrix))
+        if not os.path.exists(matrix):
+            die("Matrix file {} doesn't exists".format(matrix))
+        if not os.path.isfile(matrix):
+            die("Matrix file {} is not a file".format(matrix))
 
-            matrix_header = textwrap.dedent(
-                """
-                === Matrix {_matrixname_}
-                [options="header",cols="6,2,1",frame=all, grid=all]
-                |===
-                |Requirement |Test id |Status
-                """
-            )
+        with open(matrix, "r", encoding="utf-8") as matrix_file:
 
-            adoc_file.write(matrix_header.format(_matrixname_=matrix))
+            requirements = list(sorted(csv.reader(matrix_file)))
+            # requirements is a list, each item of the list has the form
+            # ["requirement name", test_ID]
 
-            with open(matrix, "r", encoding="utf-8") as matrix_file:
+            for machine in machines_list:
 
-                requirements = list(sorted(csv.reader(matrix_file)))
-                # requirements is a list, each item of the list has the form
-                # ["requirement name", test_ID]
-                ret = write_matrix_tests(requirements, xml_files, adoc_file)
+                machine_part = ""
+                if args.add_machine_name:
+                    machine_part = "for {}".format(machine)
+                adoc_file.write(
+                    matrix_header.format(
+                        _matrixname_=matrix,
+                        _machinepart_=machine_part,
+                    )
+                )
+
+                ret = write_matrix_tests(requirements, machine, xml_files, adoc_file)
                 if ret == 1:
                     return_code = 1
 
-            matrix_footer = textwrap.dedent(
-                """
-                |===
-
-                """
-            )
-
-            adoc_file.write(matrix_footer)
+                adoc_file.write(matrix_footer)
 
     return return_code
 
 
-def write_matrix_tests(requirements, xml_files, adoc_file):
+def write_matrix_tests(requirements, machine_name, xml_files, adoc_file):
 
     return_code = 0
 
@@ -360,7 +376,7 @@ def write_matrix_tests(requirements, xml_files, adoc_file):
                 )
             )
 
-        present, passed = check_test(test_id, xml_files)
+        present, passed = check_test(test_id, machine_name, xml_files)
         if not present:
             adoc_file.write(
                 matrix_line_test.format(
@@ -394,7 +410,7 @@ def write_matrix_tests(requirements, xml_files, adoc_file):
 # This function read all the xml and look for all tests that matches a given ID.
 # It return present=True if the ID is found at least once
 # It return passed=False if at least one test is failed.
-def check_test(test_id, xml_files):
+def check_test(test_id, machine_name, xml_files):
 
     present = False
     passed = True
@@ -405,7 +421,9 @@ def check_test(test_id, xml_files):
                 current_id = CukiniaTest.fromelem(test).get_property_value(
                     "cukinia.id"
                 )
-                if current_id == test_id:
+                if current_id == test_id and (
+                    test.classname == machine_name or not args.add_machine_name
+                ):
                     present = True
                     if not test.is_passed:
                         passed = False

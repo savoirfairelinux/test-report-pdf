@@ -41,7 +41,10 @@ documentation requirement,345
 ```
 This csv file will be sorted alphabetically before being integrated in the document.
 
-This feature only works with the id feature provided by the `-s` option.
+When the `-m` option is set, the matrix is created for each machines used in the xml.
+When the option is not set, only one matrix is provided, compiling the result of all machines at once.
+
+This feature only works when the tests provide an ID field.
 
 ![compliance matrix screenshot](./doc/compliance_matrix_screenshot.png)
 
