@@ -144,12 +144,23 @@ def generate_adoc(xml_files):
 
         adoc_file.write("== Test reports\n")
 
+        # Each test result line is an asciidoc anchor, so it can be accessed
+        # when clicking in the compliance matrix
+        # If a test id is used multiple times, the same anchor will be used.
+        # To avoid that, this set keeps tracks of all assigned anchors.
+        assigned_anchors = set()
+
         for xml in xml_files:
             for suite in xml:
                 has_test_id = check_for_id(suite)
                 write_table_header(suite, adoc_file, has_test_id)
                 for test in suite:
-                    write_table_line(CukiniaTest.fromelem(test), adoc_file, has_test_id)
+                    write_table_line(
+                        CukiniaTest.fromelem(test),
+                        adoc_file,
+                        has_test_id,
+                        assigned_anchors,
+                    )
                 write_table_footer(suite, adoc_file)
 
         return_code = 0
@@ -214,7 +225,7 @@ def write_table_header(suite, adoc_file, has_test_id):
         )
 
 
-def write_table_line(test, adoc_file, has_test_id):
+def write_table_line(test, adoc_file, has_test_id, assigned_anchors):
 
     table_line_test_id = textwrap.dedent(
         """
@@ -225,21 +236,32 @@ def write_table_line(test, adoc_file, has_test_id):
 
     table_line = textwrap.dedent(
         """
-        |{_testname_}
+        |{_testanchor_}{_testname_}
         {{set:cellbgcolor!}}
         |{_result_}
         {{set:cellbgcolor:{_color_}}}
         """
     )
 
+    test_anchor = ""
     if has_test_id:
-        adoc_file.write(
-            table_line_test_id.format(_testid_=test.get_property_value("cukinia.id"))
-        )
+        test_id = test.get_property_value("cukinia.id")
+        adoc_file.write(table_line_test_id.format(_testid_=test_id))
+
+        if args.add_machine_name:
+            test_anchor = f"[[{test.classname}_{test_id}]]".replace(" ", "_")
+        else:
+            test_anchor = f"[[{test_id}]]".replace(" ", "_")
+
+        if test_anchor in assigned_anchors:
+            test_anchor = ""
+        else:
+            assigned_anchors.add(test_anchor)
 
     if test.is_passed:
         adoc_file.write(
             table_line.format(
+                _testanchor_=test_anchor,
                 _testname_=test.name.replace("|", "\|"),
                 _result_="PASS",
                 _color_=GREEN_COLOR,
@@ -248,6 +270,7 @@ def write_table_line(test, adoc_file, has_test_id):
     else:
         adoc_file.write(
             table_line.format(
+                _testanchor_=test_anchor,
                 _testname_=test.name.replace("|", "\|"),
                 _result_="FAIL",
                 _color_=RED_COLOR,
@@ -349,7 +372,7 @@ def write_matrix_tests(requirements, machine_name, xml_files, adoc_file):
 
     matrix_line_test = textwrap.dedent(
         """
-        |{_id_}
+        |<<{_testlink_},{_id_}>>
         {{set:cellbgcolor!}}
         |{_status_}
         {{set:cellbgcolor:{_color_}}}
@@ -377,9 +400,14 @@ def write_matrix_tests(requirements, machine_name, xml_files, adoc_file):
             )
 
         present, passed = check_test(test_id, machine_name, xml_files)
+        if args.add_machine_name:
+            test_link = f"{machine_name}_{test_id}".replace(" ", "_")
+        else:
+            test_link = f"{test_id}".replace(" ", "_")
         if not present:
             adoc_file.write(
                 matrix_line_test.format(
+                    _testlink_=test_link,
                     _id_=test_id,
                     _status_="ABSENT",
                     _color_=ORANGE_COLOR,
@@ -390,6 +418,7 @@ def write_matrix_tests(requirements, machine_name, xml_files, adoc_file):
         elif passed:
             adoc_file.write(
                 matrix_line_test.format(
+                    _testlink_=test_link,
                     _id_=test_id,
                     _status_="PASS",
                     _color_=GREEN_COLOR,
@@ -398,6 +427,7 @@ def write_matrix_tests(requirements, machine_name, xml_files, adoc_file):
         else:
             adoc_file.write(
                 matrix_line_test.format(
+                    _testlink_=test_link,
                     _id_=test_id,
                     _status_="FAIL",
                     _color_=RED_COLOR,
