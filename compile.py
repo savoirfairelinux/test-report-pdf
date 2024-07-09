@@ -31,13 +31,14 @@ ORANGE_COLOR = "#ee6644"
 
 
 class CukiniaTest(TestCase):
-    '''
+    """
     Custom class to get property value in TestCase
-    '''
+    """
+
     def get_property_value(self, name):
-        '''
+        """
         Gets a property from a testcase.
-        '''
+        """
         props = self.child(Properties)
         if props is None:
             return None
@@ -138,9 +139,7 @@ def generate_adoc(xml_files):
 
     with open(ADOC_FILE_PATH, "w", encoding="utf-8") as adoc_file:
         adoc_file.write(
-            "include::{}/prerequisites.adoc[opts=optional]\n\n".format(
-                args.include_dir
-            )
+            "include::{}/prerequisites.adoc[opts=optional]\n\n".format(args.include_dir)
         )
 
         adoc_file.write("== Test reports\n")
@@ -150,8 +149,7 @@ def generate_adoc(xml_files):
                 has_test_id = check_for_id(suite)
                 write_table_header(suite, adoc_file, has_test_id)
                 for test in suite:
-                    write_table_line(CukiniaTest.fromelem(test), adoc_file,
-                                     has_test_id)
+                    write_table_line(CukiniaTest.fromelem(test), adoc_file, has_test_id)
                 write_table_footer(suite, adoc_file)
 
         return_code = 0
@@ -166,15 +164,16 @@ def generate_adoc(xml_files):
 
 
 def check_for_id(suite):
-    '''
+    """
     Check in the first test if there is an id. If yes return True otherwise
     return False
-    '''
+    """
     for test in suite:
-        if(CukiniaTest.fromelem(test).get_property_value("cukinia.id")):
+        if CukiniaTest.fromelem(test).get_property_value("cukinia.id"):
             return True
         else:
             return False
+
 
 def write_table_header(suite, adoc_file, has_test_id):
 
@@ -234,13 +233,14 @@ def write_table_line(test, adoc_file, has_test_id):
     )
 
     if has_test_id:
-        adoc_file.write(table_line_test_id.format(
-            _testid_=test.get_property_value("cukinia.id")))
+        adoc_file.write(
+            table_line_test_id.format(_testid_=test.get_property_value("cukinia.id"))
+        )
 
     if test.is_passed:
         adoc_file.write(
             table_line.format(
-                _testname_=test.name.replace('|', '\|'),
+                _testname_=test.name.replace("|", "\|"),
                 _result_="PASS",
                 _color_=GREEN_COLOR,
             )
@@ -248,9 +248,9 @@ def write_table_line(test, adoc_file, has_test_id):
     else:
         adoc_file.write(
             table_line.format(
-                _testname_=test.name.replace('|', '\|'),
+                _testname_=test.name.replace("|", "\|"),
                 _result_="FAIL",
-                _color_=RED_COLOR
+                _color_=RED_COLOR,
             )
         )
 
@@ -438,13 +438,15 @@ try:
     return_code = generate_adoc(xml_files)
     date = datetime.now().astimezone().strftime("%-d %B %Y, %H:%M:%S %Z")
     year = datetime.now().astimezone().strftime("%Y")
-    os.system(f"asciidoctor-pdf \
+    os.system(
+        f"asciidoctor-pdf \
             -r ./extended-pdf-converter.rb \
             -a revdate='{date}' \
             -a year='{year}' \
             -a author='{args.client_name}' \
             -a project='{args.project_name}' \
-            test-report.adoc")
+            test-report.adoc"
+    )
 finally:
     os.remove(ADOC_FILE_PATH)
 
