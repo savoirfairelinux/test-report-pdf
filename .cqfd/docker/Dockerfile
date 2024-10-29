@@ -23,7 +23,7 @@ RUN set -x \
         black \
         fd-find \
         make \
-        openjdk-8-jre-headless \
+        openjdk-17-jre-headless \
         pylint \
         python3 \
         python3-pip \
@@ -36,7 +36,7 @@ RUN set -x \
 
 RUN pip install junitparser==3.1.0
 
-ARG sonar_version=4.7.0.2747
+ARG sonar_version=6.2.1.4610
 ARG sonar_repo=https://binaries.sonarsource.com/Distribution/sonar-scanner-cli
 RUN set -x \
     && wget -O /tmp/sonar-scanner.zip \
@@ -48,7 +48,6 @@ RUN ln -s "/opt/sonar-scanner-${sonar_version}" /opt/sonar-scanner
 RUN echo 'sonar.host.url=http://j1.sfl.team:9000/' \
     > /opt/sonar-scanner/conf/sonar-scanner.properties
 COPY python-sonar.sh /usr/bin/python-sonar.sh
-COPY detect_sonar_errors.py /usr/bin/detect_sonar_errors.py
 
 # Install cukinia to compile examples
 ADD https://raw.githubusercontent.com/savoirfairelinux/cukinia/master/cukinia /usr/bin/cukinia
