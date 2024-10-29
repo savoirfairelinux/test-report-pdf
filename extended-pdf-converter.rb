@@ -1,4 +1,4 @@
-require 'asciidoctor-pdf' unless defined? ::Asciidoctor::Pdf
+require 'asciidoctor-pdf' unless defined? ::Asciidoctor::PDF
 
 module AsciidoctorPdfExtensions
 
@@ -12,4 +12,4 @@ module AsciidoctorPdfExtensions
 
   end
 end
-Asciidoctor::Pdf::Converter.prepend AsciidoctorPdfExtensions
+Asciidoctor::PDF::Converter.prepend AsciidoctorPdfExtensions
