@@ -262,7 +262,7 @@ def write_table_line(test, adoc_file, has_test_id, assigned_anchors):
         adoc_file.write(
             table_line.format(
                 _testanchor_=test_anchor,
-                _testname_=test.name.replace("|", "\|"),
+                _testname_=test.name.replace("|", "\\|"),
                 _result_="PASS",
                 _color_=GREEN_COLOR,
             )
@@ -271,7 +271,7 @@ def write_table_line(test, adoc_file, has_test_id, assigned_anchors):
         adoc_file.write(
             table_line.format(
                 _testanchor_=test_anchor,
-                _testname_=test.name.replace("|", "\|"),
+                _testname_=test.name.replace("|", "\\|"),
                 _result_="FAIL",
                 _color_=RED_COLOR,
             )
