@@ -111,6 +111,14 @@ def parse_arguments():
         help="""Name of the project. This will be added to the report title""",
     )
 
+    parser.add_argument(
+        "-e",
+        "--contact_email",
+        help="""Contact email address. This will be added to the report title""",
+        type=str,
+        default="contact@savoirfairelinux.com",
+    )
+
     return parser.parse_args()
 
 
@@ -485,6 +493,7 @@ try:
             -a year='{year}' \
             -a author='{args.client_name}' \
             -a project='{args.project_name}' \
+            -a email='{args.contact_email}' \
             test-report.adoc"
     )
 finally:
