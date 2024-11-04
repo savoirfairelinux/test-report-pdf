@@ -28,6 +28,7 @@ ADOC_FILE_PATH = "test-report-content.adoc"
 GREEN_COLOR = "#90EE90"
 RED_COLOR = "#F08080"
 ORANGE_COLOR = "#ee6644"
+YELLOW_COLOR = "#f8ff19"
 
 
 class CukiniaTest(TestCase):
@@ -265,6 +266,15 @@ def write_table_line(test, adoc_file, has_test_id, assigned_anchors):
                 _testname_=test.name.replace("|", "\\|"),
                 _result_="PASS",
                 _color_=GREEN_COLOR,
+            )
+        )
+    elif test.is_skipped:
+        adoc_file.write(
+            table_line.format(
+                _testanchor_=test_anchor,
+                _testname_=test.name.replace("|", "\\|"),
+                _result_="SKIPPED",
+                _color_=YELLOW_COLOR,
             )
         )
     else:
