@@ -119,6 +119,22 @@ def parse_arguments():
         default="contact@savoirfairelinux.com",
     )
 
+    parser.add_argument(
+        "-t",
+        "--pdf_theme",
+        help="""The name of the theme file to load.""",
+        type=str,
+        default="theme.yml",
+    )
+
+    parser.add_argument(
+        "-d",
+        "--pdf_themes_dir",
+        help="""The directory path where the theme file is located.""",
+        type=str,
+        default=os.path.join(os.getcwd(), 'themes'),
+    )
+
     return parser.parse_args()
 
 
@@ -486,6 +502,7 @@ try:
     return_code = generate_adoc(xml_files)
     date = datetime.now().astimezone().strftime("%-d %B %Y, %H:%M:%S %Z")
     year = datetime.now().astimezone().strftime("%Y")
+
     os.system(
         f"asciidoctor-pdf \
             -r ./extended-pdf-converter.rb \
@@ -494,6 +511,8 @@ try:
             -a author='{args.client_name}' \
             -a project='{args.project_name}' \
             -a email='{args.contact_email}' \
+            -a pdf-themesdir='{args.pdf_themes_dir}' \
+            -a pdf-theme='{args.pdf_theme}' \
             test-report.adoc"
     )
 finally:
