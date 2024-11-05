@@ -29,7 +29,7 @@ title_page:
     margin-top: 40
     content:
       with_email: |
-          Receiver: {author}
+          Receiver: {author} +
           Contact: <{email}>
     font-color: #181818
 code:
