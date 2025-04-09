@@ -239,14 +239,14 @@ def generate_adoc(xml_files):
 
 def check_for_id(suite):
     """
-    Check in the first test if there is an id. If yes return True otherwise
+    Check if an ID is used in one of the test. If yes return True otherwise
     return False
     """
     for test in suite:
         if CukiniaTest.fromelem(test).get_property_value("cukinia.id"):
             return True
-        else:
-            return False
+
+    return False
 
 
 def write_table_header(suite, adoc_file, has_test_id):
