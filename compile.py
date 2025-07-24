@@ -155,6 +155,41 @@ def open_test_files(directory):
     return xml_files
 
 
+def write_tests_summary(adoc_file):
+    """
+    Write a summary of the tests results in the adoc file.
+    """
+    total_nbtests = 0
+    total_nbfailures = 0
+    total_nbskipped = 0
+    for xml in xml_files:
+        for suite in xml:
+            total_nbtests = total_nbtests + suite.tests
+            total_nbfailures = total_nbfailures + suite.failures
+            total_nbskipped = total_nbskipped + suite.skipped
+
+    total_nbpassed = total_nbtests - total_nbfailures - total_nbskipped
+
+    summary = textwrap.dedent(
+        """
+        * Total number of tests: {_totalnbtests_}
+        * Total number of passed tests: {_totalnbpassed_}
+        * Total number of failures: {_totalnbfailures_}
+        * Total number of skipped: {_totalnbskipped_}
+
+        """
+    )
+
+    adoc_file.write(
+        summary.format(
+            _totalnbtests_=total_nbtests,
+            _totalnbpassed_=total_nbpassed,
+            _totalnbfailures_=total_nbfailures,
+            _totalnbskipped_=total_nbskipped,
+        )
+    )
+
+
 def generate_adoc(xml_files):
 
     if os.path.exists(ADOC_FILE_PATH):
@@ -166,6 +201,9 @@ def generate_adoc(xml_files):
         adoc_file.write(
             "include::{}/prerequisites.adoc[opts=optional]\n\n".format(args.include_dir)
         )
+
+        adoc_file.write("== Tests summary\n")
+        write_tests_summary(adoc_file)
 
         adoc_file.write("== Test reports\n")
 
