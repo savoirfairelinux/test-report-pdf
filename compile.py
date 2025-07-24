@@ -319,12 +319,17 @@ def write_table_footer(suite, adoc_file):
         |===
         * number of tests: {_nbtests_}
         * number of failures: {_nbfailures_}
+        * number of skipped: {_nbskipped_}
 
         """
     )
 
     adoc_file.write(
-        table_footer.format(_nbtests_=suite.tests, _nbfailures_=suite.failures)
+        table_footer.format(
+            _nbtests_=suite.tests,
+            _nbfailures_=suite.failures,
+            _nbskipped_=suite.skipped,
+        )
     )
 
 
