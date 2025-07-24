@@ -12,6 +12,8 @@ command=' \
     && mv test-report.pdf complex-example.pdf \
 '
 flavors='sonarqube'
+docker_run_args=" -e SONAR_AUTH_TOKEN -e GERRIT_CHANGE_NUMBER \
+-e GERRIT_PATCHSET_NUMBER -e GERRIT_BRANCH -e GERRIT_REFSPEC"
 
 [sonarqube]
 command='/usr/bin/python-sonar.sh'
