@@ -135,6 +135,14 @@ def parse_arguments():
         default=os.path.join(os.getcwd(), 'themes'),
     )
 
+    parser.add_argument(
+        "--allow_absent",
+        help="""Allow absent tests in the compliance matrix. WARNING: you won't"""
+        """ be notified again that some tests are absents.""",
+        action="store_true",
+        default=False,
+    )
+
     return parser.parse_args()
 
 
@@ -490,8 +498,11 @@ def write_matrix_tests(requirements, machine_name, xml_files, adoc_file):
                     _color_=ORANGE_COLOR,
                 )
             )
-            print(f"ERROR : Test id {test_id} is not present")
-            return_code = 1
+            if not args.allow_absent:
+                print(f"ERROR : Test id {test_id} is not present")
+                return_code = 1
+            else:
+                print(f"INFO : Test id {test_id} is not present, but allowed")
         elif passed:
             adoc_file.write(
                 matrix_line_test.format(
