@@ -430,7 +430,7 @@ def add_compliance_matrix(xml_files, adoc_file, has_test_id):
                     machine_part = "for {}".format(machine)
                 adoc_file.write(
                     matrix_header.format(
-                        _matrixname_=matrix,
+                        _matrixname_=os.path.basename(matrix),
                         _machinepart_=machine_part,
                     )
                 )
