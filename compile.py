@@ -484,7 +484,7 @@ def write_matrix_tests(requirements, machine_name, xml_files, adoc_file):
                 )
             )
 
-        present, passed = check_test(test_id, machine_name, xml_files)
+        present, passed, skipped = check_test(test_id, machine_name, xml_files)
         if args.add_machine_name:
             test_link = f"{machine_name}_{test_id}".replace(" ", "_")
         else:
@@ -512,6 +512,15 @@ def write_matrix_tests(requirements, machine_name, xml_files, adoc_file):
                     _color_=GREEN_COLOR,
                 )
             )
+        elif skipped:
+            adoc_file.write(
+                matrix_line_test.format(
+                    _testlink_=test_link,
+                    _id_=test_id,
+                    _status_="SKIPPED",
+                    _color_=YELLOW_COLOR,
+                )
+            )
         else:
             adoc_file.write(
                 matrix_line_test.format(
@@ -532,6 +541,7 @@ def check_test(test_id, machine_name, xml_files):
 
     present = False
     passed = True
+    skipped = False
 
     for xml in xml_files:
         for suite in xml:
@@ -545,8 +555,10 @@ def check_test(test_id, machine_name, xml_files):
                     present = True
                     if not test.is_passed:
                         passed = False
+                    if test.is_skipped:
+                        skipped = True
 
-    return present, passed
+    return present, passed, skipped
 
 
 args = parse_arguments()
