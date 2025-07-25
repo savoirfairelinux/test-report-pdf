@@ -27,7 +27,7 @@ from datetime import datetime
 ADOC_FILE_PATH = "test-report-content.adoc"
 GREEN_COLOR = "#90EE90"
 RED_COLOR = "#F08080"
-ORANGE_COLOR = "#ee6644"
+ORANGE_COLOR = "#FFA500"
 YELLOW_COLOR = "#f8ff19"
 
 
