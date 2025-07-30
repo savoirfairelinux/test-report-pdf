@@ -236,7 +236,7 @@ def generate_adoc(xml_files):
 
         return_code = 0
         if args.compliance_matrix:
-            return_code = add_compliance_matrix(xml_files, adoc_file, has_test_id)
+            return_code = add_compliance_matrix(xml_files, adoc_file)
 
         adoc_file.write(
             "include::{}/notes.adoc[opts=optional]\n".format(args.include_dir)
@@ -379,7 +379,23 @@ def write_table_footer(suite, adoc_file):
     )
 
 
-def add_compliance_matrix(xml_files, adoc_file, has_test_id):
+def has_any_test_id(xml_files):
+    """
+    Check if any of the xml files has at least one test with an ID.
+    This is used to know if we can include the compliance matrix.
+    """
+    for xml in xml_files:
+        for suite in xml:
+            if check_for_id(suite):
+                return True
+    return False
+
+def add_compliance_matrix(xml_files, adoc_file):
+    """
+    Add the compliance matrix to the adoc file.
+    The compliance matrix is a csv file that contains the requirements and
+    the test IDs that should be used to check the compliance.
+    """
 
     matrix_header = textwrap.dedent(
         """
@@ -406,7 +422,7 @@ def add_compliance_matrix(xml_files, adoc_file, has_test_id):
 
     return_code = 0
 
-    if not has_test_id:
+    if not has_any_test_id(xml_files):
         die("Can't include compliance matrix, test id feature is not enabled")
     adoc_file.write("== Compliance Matrix\n")
 
