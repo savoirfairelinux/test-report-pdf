@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 FROM ubuntu:22.04
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN set -x \
     && apt-get update \
@@ -29,10 +29,12 @@ RUN set -x \
         python3-pip \
         python3-sphinx \
         ruby \
-        ruby-asciidoctor-pdf \
         unzip \
         wget \
     && rm -rf /var/lib/apt/lists/
+
+# Install a recent version of asciidoctor-pdf
+RUN gem install asciidoctor-pdf --version '2.3.20'
 
 RUN pip install junitparser==3.1.0
 
