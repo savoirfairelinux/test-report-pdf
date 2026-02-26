@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="595" height="842" viewBox="0 0 595 842">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a7fa0"/>
+      <stop offset="100%" stop-color="#56b0c9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="595" height="842" fill="url(#bg)"/>
+
+  <!-- Top-left decorative block -->
+  <rect x="0" y="0" width="180" height="8" fill="#ffffff" opacity="0.15"/>
+
+  <!-- Bottom accent bar -->
+  <rect x="0" y="800" width="595" height="42" fill="#1a5f7a" opacity="0.6"/>
+
+  <!-- Diagonal decorative lines -->
+  <line x1="0" y1="842" x2="200" y2="580" stroke="#ffffff" stroke-width="1" opacity="0.1"/>
+  <line x1="0" y1="842" x2="350" y2="580" stroke="#ffffff" stroke-width="1" opacity="0.1"/>
+  <line x1="0" y1="842" x2="500" y2="580" stroke="#ffffff" stroke-width="1" opacity="0.1"/>
+  <line x1="595" y1="842" x2="395" y2="580" stroke="#ffffff" stroke-width="1" opacity="0.1"/>
+
+  <!-- Large circle, bottom-right -->
+  <circle cx="520" cy="720" r="160" fill="#ffffff" opacity="0.04"/>
+  <circle cx="520" cy="720" r="110" fill="#ffffff" opacity="0.04"/>
+
+  <!-- Small circle, top-right -->
+  <circle cx="540" cy="80" r="60" fill="#ffffff" opacity="0.06"/>
+</svg>

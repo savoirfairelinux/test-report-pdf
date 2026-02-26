@@ -136,6 +136,14 @@ def parse_arguments():
     )
 
     parser.add_argument(
+        "-b",
+        "--title_background_image",
+        help="""Path to an image file to use as the title page background.""",
+        type=str,
+        default=None,
+    )
+
+    parser.add_argument(
         "--allow_absent",
         help="""Allow absent tests in the compliance matrix. WARNING: you won't"""
         """ be notified again that some tests are absents.""",
@@ -585,6 +593,11 @@ try:
     date = datetime.now().astimezone().strftime("%-d %B %Y, %H:%M:%S %Z")
     year = datetime.now().astimezone().strftime("%Y")
 
+    background_arg = ""
+    if args.title_background_image:
+        bg_path = os.path.abspath(args.title_background_image)
+        background_arg = f"-a title-page-background-image=image:{bg_path}[]"
+
     os.system(
         f"asciidoctor-pdf \
             -r ./extended-pdf-converter.rb \
@@ -595,6 +608,7 @@ try:
             -a email='{args.contact_email}' \
             -a pdf-themesdir='{args.pdf_themes_dir}' \
             -a pdf-theme='{args.pdf_theme}' \
+            {background_arg} \
             test-report.adoc"
     )
 finally:

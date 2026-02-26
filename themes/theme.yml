@@ -16,6 +16,8 @@
 extends: default
 title_page:
   background_color: #56b0c9
+  # Uncomment and set path (relative to pdf-themesdir) to use a background image:
+  #background_image: image:background.svg[]
   align: center
   logo:
     image: image:sfl.png[width=30%, align=center]
