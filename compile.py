@@ -22,6 +22,7 @@ import os
 import sys
 import textwrap
 from junitparser import TestCase, JUnitXml, Properties
+from junitparser.junitparser import SystemErr, SystemOut
 from datetime import datetime
 
 ADOC_FILE_PATH = "test-report-content.adoc"
@@ -47,6 +48,12 @@ class CukiniaTest(TestCase):
             if prop.name == name:
                 return prop.value
         return None
+
+    def get_section(self, section_type):
+        """
+        Gets a section (system-out or system-err) from a testcase.
+        """
+        return self.child(section_type)
 
 
 def die(error_string):
@@ -151,6 +158,13 @@ def parse_arguments():
         default=False,
     )
 
+    parser.add_argument(
+        "--show_failed_cdata",
+        help="""Show system-out and system-err content for failed tests.""",
+        action="store_true",
+        default=False,
+    )
+
     return parser.parse_args()
 
 
@@ -214,6 +228,8 @@ def generate_adoc(xml_files):
         os.remove(ADOC_FILE_PATH)
 
     with open(ADOC_FILE_PATH, "w", encoding="utf-8") as adoc_file:
+        failed_outputs = []
+
         adoc_file.write(
             "include::{}/prerequisites.adoc[opts=optional]\n\n".format(args.include_dir)
         )
@@ -239,12 +255,16 @@ def generate_adoc(xml_files):
                         adoc_file,
                         has_test_id,
                         assigned_anchors,
+                        failed_outputs,
                     )
                 write_table_footer(suite, adoc_file)
 
         return_code = 0
         if args.compliance_matrix:
             return_code = add_compliance_matrix(xml_files, adoc_file)
+
+        if args.show_failed_cdata:
+            write_failed_cdata_annex(failed_outputs, adoc_file)
 
         adoc_file.write(
             "include::{}/notes.adoc[opts=optional]\n".format(args.include_dir)
@@ -304,7 +324,9 @@ def write_table_header(suite, adoc_file, has_test_id):
         )
 
 
-def write_table_line(test, adoc_file, has_test_id, assigned_anchors):
+def write_table_line(
+    test, adoc_file, has_test_id, assigned_anchors, failed_outputs
+):
 
     table_line_test_id = textwrap.dedent(
         """
@@ -356,14 +378,87 @@ def write_table_line(test, adoc_file, has_test_id, assigned_anchors):
             )
         )
     else:
+        failure_anchor = ""
+        result_text = "FAIL"
+
+        if args.show_failed_cdata:
+            failure_anchor = register_failed_output(test, failed_outputs)
+            if failure_anchor:
+                result_text = f"<<{failure_anchor},FAIL>>"
+
         adoc_file.write(
             table_line.format(
                 _testanchor_=test_anchor,
                 _testname_=test.name.replace("|", "\\|"),
-                _result_="FAIL",
+                _result_=result_text,
                 _color_=RED_COLOR,
             )
         )
+
+
+def register_failed_output(test, failed_outputs):
+
+    outputs = []
+    for section_type, section_name in ((SystemOut, "system-out"), (SystemErr, "system-err")):
+        section = test.get_section(section_type)
+        if section is None or section.text is None or not section.text.strip():
+            continue
+        outputs.append((section_name, section.text.rstrip()))
+
+    if not outputs:
+        return ""
+
+    failure_anchor = f"failed-output-{len(failed_outputs) + 1}"
+    failed_outputs.append(
+        {
+            "anchor": failure_anchor,
+            "classname": test.classname,
+            "name": test.name,
+            "test_id": test.get_property_value("cukinia.id"),
+            "outputs": outputs,
+        }
+    )
+    return failure_anchor
+
+
+def write_failed_cdata_annex(failed_outputs, adoc_file):
+
+    if not failed_outputs:
+        return
+
+    adoc_file.write("== Failed tests output\n")
+    adoc_file.write("{{set:cellbgcolor!}}\n")
+    for item in failed_outputs:
+        item_name = item["name"].replace("|", "\\|")
+        title = item_name
+        if args.add_machine_name:
+            title = f"{item['classname']} / {title}"
+        if item.get("test_id"):
+            title = f"{title} ({item['test_id']})"
+        adoc_file.write(
+            textwrap.dedent(
+                f"""
+
+                [[{item['anchor']}]]
+                === {title}
+                [options="header",cols="1,9",frame=all,grid=all]
+                |===
+                |Type |Output
+                """
+            )
+        )
+        for section_name, content in item["outputs"]:
+            escaped_content = content.replace("|", "\\|").replace("\n", " pass:[<br>] ")
+            adoc_file.write(
+                textwrap.dedent(
+                    f"""
+
+                    |{section_name}
+                    |{escaped_content}
+                    """
+                )
+            )
+        adoc_file.write("|===\n")
 
 
 def write_table_footer(suite, adoc_file):
