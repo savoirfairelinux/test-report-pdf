@@ -107,6 +107,12 @@ def parse_arguments():
     )
 
     parser.add_argument(
+        "--merge_compliance_matrices",
+        help="""Creates a single matrix from all the machines results.""",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "-C",
         "--client_name",
         help="""Name of the client. This will be added in receiver field""",
@@ -542,10 +548,14 @@ def add_compliance_matrix(xml_files, adoc_file):
             # requirements is a list, each item of the list has the form
             # ["requirement name", test_ID]
 
+            if args.merge_compliance_matrices:
+                # We only want to export each matrix once, no matter the amount of machines.
+                machines_list = [None]
+
             for machine in machines_list:
 
                 machine_part = ""
-                if args.add_machine_name:
+                if args.add_machine_name and not args.merge_compliance_matrices:
                     machine_part = "for {}".format(machine)
                 adoc_file.write(
                     matrix_header.format(
@@ -604,7 +614,7 @@ def write_matrix_tests(requirements, machine_name, xml_files, adoc_file):
             )
 
         present, passed, skipped = check_test(test_id, machine_name, xml_files)
-        if args.add_machine_name:
+        if args.add_machine_name and not args.merge_compliance_matrices:
             test_link = f"{machine_name}_{test_id}".replace(" ", "_")
         else:
             test_link = f"{test_id}".replace(" ", "_")
@@ -669,7 +679,7 @@ def check_test(test_id, machine_name, xml_files):
                     "cukinia.id"
                 )
                 if current_id == test_id and (
-                    test.classname == machine_name or not args.add_machine_name
+                    test.classname == machine_name or not args.add_machine_name or args.merge_compliance_matrices
                 ):
                     present = True
                     if not test.is_passed:
