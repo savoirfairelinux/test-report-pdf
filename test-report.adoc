@@ -17,7 +17,7 @@
 :pdf-theme: themes/theme.yml
 :doctype: book
 
-= Test report {project}
+= Test report {project}: {subtitle}
 :toc:
 :icons:
 :iconsdir: ./doc/icons/
