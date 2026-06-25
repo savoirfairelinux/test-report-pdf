@@ -157,6 +157,13 @@ def parse_arguments():
     )
 
     parser.add_argument(
+        "--subtitle",
+        help="""Subtitle to be shown on the title page.""",
+        type=str,
+        default='',
+    )
+
+    parser.add_argument(
         "--allow_absent",
         help="""Allow absent tests in the compliance matrix. WARNING: you won't"""
         """ be notified again that some tests are absents.""",
@@ -713,6 +720,7 @@ try:
             -a email='{args.contact_email}' \
             -a pdf-themesdir='{args.pdf_themes_dir}' \
             -a pdf-theme='{args.pdf_theme}' \
+            -a subtitle='{args.subtitle}' \
             {background_arg} \
             test-report.adoc"
     )
