@@ -21,7 +21,7 @@ import glob
 import os
 import sys
 import textwrap
-from junitparser import TestCase, JUnitXml, Properties
+from junitparser import TestCase, JUnitXml, Properties, Skipped
 from junitparser.junitparser import SystemErr, SystemOut
 from datetime import datetime
 
@@ -178,6 +178,13 @@ def parse_arguments():
         default=False,
     )
 
+    parser.add_argument(
+        "--show_skip_reasons",
+        help="""Show why each skipped test was skipped.""",
+        action="store_true",
+        default=False,
+    )
+
     return parser.parse_args()
 
 
@@ -242,6 +249,7 @@ def generate_adoc(xml_files):
 
     with open(ADOC_FILE_PATH, "w", encoding="utf-8") as adoc_file:
         failed_outputs = []
+        skipped_outputs = []
 
         adoc_file.write(
             "include::{}/prerequisites.adoc[opts=optional]\n\n".format(args.include_dir)
@@ -269,6 +277,7 @@ def generate_adoc(xml_files):
                         has_test_id,
                         assigned_anchors,
                         failed_outputs,
+                        skipped_outputs,
                     )
                 write_table_footer(suite, adoc_file)
 
@@ -277,7 +286,10 @@ def generate_adoc(xml_files):
             return_code = add_compliance_matrix(xml_files, adoc_file)
 
         if args.show_failed_cdata:
-            write_failed_cdata_annex(failed_outputs, adoc_file)
+            write_cdata_annex(failed_outputs, "Failed tests output", adoc_file)
+
+        if args.show_skip_reasons:
+            write_cdata_annex(skipped_outputs, "Skipped tests reasons", adoc_file)
 
         adoc_file.write(
             "include::{}/notes.adoc[opts=optional]\n".format(args.include_dir)
@@ -338,7 +350,7 @@ def write_table_header(suite, adoc_file, has_test_id):
 
 
 def write_table_line(
-    test, adoc_file, has_test_id, assigned_anchors, failed_outputs
+    test, adoc_file, has_test_id, assigned_anchors, failed_outputs, skipped_outputs
 ):
 
     table_line_test_id = textwrap.dedent(
@@ -382,11 +394,23 @@ def write_table_line(
             )
         )
     elif test.is_skipped:
+        result_text = "SKIPPED"
+
+        if args.show_skip_reasons:
+            reasons = [
+                ("reason", result.text.strip())
+                for result in test.result
+                if isinstance(result, Skipped) and result.text and result.text.strip()
+            ]
+            skipped_anchor = register_output(test, reasons, skipped_outputs, "skip-reason")
+            if skipped_anchor:
+                result_text = f"<<{skipped_anchor},SKIPPED>>"
+
         adoc_file.write(
             table_line.format(
                 _testanchor_=test_anchor,
                 _testname_=test.name.replace("|", "\\|"),
-                _result_="SKIPPED",
+                _result_=result_text,
                 _color_=YELLOW_COLOR,
             )
         )
@@ -395,7 +419,9 @@ def write_table_line(
         result_text = "FAIL"
 
         if args.show_failed_cdata:
-            failure_anchor = register_failed_output(test, failed_outputs)
+            failure_anchor = register_output(
+                test, cdata_outputs(test), failed_outputs, "failed-output"
+            )
             if failure_anchor:
                 result_text = f"<<{failure_anchor},FAIL>>"
 
@@ -409,7 +435,7 @@ def write_table_line(
         )
 
 
-def register_failed_output(test, failed_outputs):
+def cdata_outputs(test):
 
     outputs = []
     for section_type, section_name in ((SystemOut, "system-out"), (SystemErr, "system-err")):
@@ -417,31 +443,35 @@ def register_failed_output(test, failed_outputs):
         if section is None or section.text is None or not section.text.strip():
             continue
         outputs.append((section_name, section.text.rstrip()))
+    return outputs
+
+
+def register_output(test, outputs, outputs_list, anchor_prefix):
 
     if not outputs:
         return ""
 
-    failure_anchor = f"failed-output-{len(failed_outputs) + 1}"
-    failed_outputs.append(
+    anchor = f"{anchor_prefix}-{len(outputs_list) + 1}"
+    outputs_list.append(
         {
-            "anchor": failure_anchor,
+            "anchor": anchor,
             "classname": test.classname,
             "name": test.name,
             "test_id": test.get_property_value("cukinia.id"),
             "outputs": outputs,
         }
     )
-    return failure_anchor
+    return anchor
 
 
-def write_failed_cdata_annex(failed_outputs, adoc_file):
+def write_cdata_annex(outputs_list, annex_title, adoc_file):
 
-    if not failed_outputs:
+    if not outputs_list:
         return
 
-    adoc_file.write("== Failed tests output\n")
+    adoc_file.write(f"== {annex_title}\n")
     adoc_file.write("{{set:cellbgcolor!}}\n")
-    for item in failed_outputs:
+    for item in outputs_list:
         item_name = item["name"].replace("|", "\\|")
         title = item_name
         if args.add_machine_name:
